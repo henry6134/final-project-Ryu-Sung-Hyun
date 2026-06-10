@@ -1,16 +1,10 @@
+import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.10'
 import { toBlobURL, fetchFile } from 'https://esm.sh/@ffmpeg/util@0.12.2'
 import { state, subscribe, emit } from './store.js'
 import { renderHeader, bindHeaderEvents } from './components/Header.js'
 import { renderUploadPanel, bindUploadPanelEvents } from './components/UploadPanel.js'
 import { renderOutputPanel, bindOutputPanelEvents } from './components/OutputPanel.js'
 import { getFileType } from './utils/formats.js'
-
-const { FFmpeg } = await import(
-  await toBlobURL(
-    'https://esm.sh/@ffmpeg/ffmpeg@0.12.10/es2022/ffmpeg.mjs',
-    'text/javascript'
-  )
-)
 
 const ffmpeg = new FFmpeg()
 ffmpeg.on('log', ({ message }) => console.log('[FFmpeg]', message))
