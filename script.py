@@ -1,4 +1,10 @@
-<!doctype html>
+
+생성된 코드
+import os, textwrap, json, pathlib
+base = pathlib.Path('output')
+base.mkdir(exist_ok=True)
+
+index_html = r'''<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
@@ -124,4 +130,26 @@ document.addEventListener('change',e=>{ if(e.target.matches('.chk')){ results[+e
 document.addEventListener('click',async e=>{ if(!e.target.dataset.dl) return; const r = sorted()[+e.target.dataset.dl]; const a=document.createElement('a'); a.href=URL.createObjectURL(r.blob); a.download=r.name; a.click(); });
 </script>
 </body>
-</html>
+</html>'''
+
+readme = '''# 미디어 컨버터 (GitHub Pages용)
+
+브라우저에서만 동작하는 정적 웹앱입니다. GitHub Pages에 올리면 바로 실행됩니다.
+
+## 기능
+- 상단 탭: 오디오 / 사진 / 영상
+- 상단 업로드, 하단 결과 영역
+- 파일/폴더 업로드
+- 폴더 구조 유지 ZIP 다운로드
+- 체크박스 선택 다운로드
+- FFmpeg.wasm 기반 브라우저 변환
+
+## 주의
+- GitHub Pages는 정적 호스팅이므로 서버 업로드는 사용하지 않습니다.
+- 변환은 사용자 브라우저에서 수행됩니다.
+'''
+
+(base/'index.html').write_text(index_html, encoding='utf-8')
+(base/'README.md').write_text(readme, encoding='utf-8')
+
+print('written', (base/'index.html').exists(), (base/'README.md').exists())
