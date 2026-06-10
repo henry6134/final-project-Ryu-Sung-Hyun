@@ -1,0 +1,24 @@
+/* src/styles/theme.css */
+.theme-light {
+  background: #efe2c7;
+  color: #2b2118;
+}
+.theme-light .toolbar button,
+.theme-light .editor-top button,
+.theme-light .primary {
+  background: #f7efe1;
+  color: #2b2118;
+  border: 1px solid #c9b89a;
+}
+
+.theme-dark {
+  background: #101a33;
+  color: #e6ecff;
+}
+.theme-dark .toolbar button,
+.theme-dark .editor-top button,
+.theme-dark .primary {
+  background: #182548;
+  color: #e6ecff;
+  border: 1px solid #3c4f86;
+}
