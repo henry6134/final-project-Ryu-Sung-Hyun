@@ -1,32 +1,10 @@
 import { toBlobURL, fetchFile } from 'https://esm.sh/@ffmpeg/util@0.12.2'
+import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/ffmpeg.js'
 import { state, subscribe, emit } from './store.js'
 import { renderHeader, bindHeaderEvents } from './components/Header.js'
 import { renderUploadPanel, bindUploadPanelEvents } from './components/UploadPanel.js'
 import { renderOutputPanel, bindOutputPanelEvents } from './components/OutputPanel.js'
 import { getFileType } from './utils/formats.js'
-
-// FFmpeg worker.js를 먼저 blob URL로 변환
-// → esm.sh에서 Worker 생성 시 cross-origin 차단을 우회
-const FFMPEG_WORKER_URL = await toBlobURL(
-  'https://esm.sh/@ffmpeg/ffmpeg@0.12.10/es2022/worker.js',
-  'text/javascript'
-)
-
-// Worker 생성자를 패치: esm.sh worker 요청을 blob URL로 교체
-const _OriginalWorker = window.Worker
-window.Worker = function (url, opts) {
-  const href = url instanceof URL ? url.href : String(url)
-  if (href.includes('esm.sh') && href.includes('worker')) {
-    return new _OriginalWorker(FFMPEG_WORKER_URL, opts)
-  }
-  return new _OriginalWorker(url, opts)
-}
-window.Worker.prototype = _OriginalWorker.prototype
-
-const { FFmpeg } = await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.10')
-
-// 패치 복원
-window.Worker = _OriginalWorker
 
 const ffmpeg = new FFmpeg()
 ffmpeg.on('log', ({ message }) => console.log('[FFmpeg]', message))
@@ -45,13 +23,31 @@ let ffmpegLoaded = false
 async function loadFFmpeg() {
   if (ffmpegLoaded) return
 
-  // core-st: SharedArrayBuffer·COOP/COEP 불필요
-  const coreBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.2/dist/esm'
+  const ffmpegBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm'
+  const coreBase   = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.2/dist/esm'
+
+  // Worker.js를 blob URL로 변환 (cross-origin Worker 차단 우회)
+  const workerBlobURL = await toBlobURL(`${ffmpegBase}/worker.js`, 'text/javascript')
+
+  // ffmpeg.load() 내부에서 Worker 생성 시 blob URL로 교체
+  const _W = window.Worker
+  window.Worker = function (url, opts) {
+    const href = url instanceof URL ? url.href : String(url)
+    if (href.includes('worker')) return new _W(workerBlobURL, opts)
+    return new _W(url, opts)
+  }
+
   const [coreURL, wasmURL] = await Promise.all([
     toBlobURL(`${coreBase}/ffmpeg-core.js`,   'text/javascript'),
     toBlobURL(`${coreBase}/ffmpeg-core.wasm`, 'application/wasm'),
   ])
-  await ffmpeg.load({ coreURL, wasmURL })
+
+  try {
+    await ffmpeg.load({ coreURL, wasmURL })
+  } finally {
+    window.Worker = _W  // Worker 복원
+  }
+
   ffmpegLoaded = true
 }
 
