@@ -23,13 +23,18 @@ let ffmpegLoaded = false
 async function loadFFmpeg() {
   if (ffmpegLoaded) return
 
-  // jsdelivr는 CORS 허용 + core-st는 SharedArrayBuffer 불필요
-  const coreBase = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.6/dist/esm'
-  const [coreURL, wasmURL] = await Promise.all([
+  const ffmpegBase = 'https://esm.sh/@ffmpeg/ffmpeg@0.12.10/es2022'
+  const coreBase   = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core-st@0.12.2/dist/esm'
+
+  const [classWorkerURL, coreURL, wasmURL] = await Promise.all([
+    // FFmpeg 클래스 자체의 worker → blob URL로 감싸야 cross-origin 차단 우회
+    toBlobURL(`${ffmpegBase}/worker.js`,       'text/javascript'),
+    // core-st: SharedArrayBuffer 불필요, workerURL 없음
     toBlobURL(`${coreBase}/ffmpeg-core.js`,   'text/javascript'),
     toBlobURL(`${coreBase}/ffmpeg-core.wasm`, 'application/wasm'),
   ])
-  await ffmpeg.load({ coreURL, wasmURL })
+
+  await ffmpeg.load({ classWorkerURL, coreURL, wasmURL })
   ffmpegLoaded = true
 }
 
