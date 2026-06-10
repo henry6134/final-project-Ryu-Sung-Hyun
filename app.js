@@ -1,6 +1,8 @@
-const { createFFmpeg, fetchFile } = FFmpeg;
+import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+import { fetchFile, toBlobURL } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js";
+import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 
-const ffmpeg = createFFmpeg({ log: false });
+const ffmpeg = new FFmpeg();
 let ffmpegReady = false;
 let currentMode = "audio";
 let currentJob = [];
@@ -36,10 +38,12 @@ document.querySelectorAll(".tab").forEach(btn => {
 });
 
 async function ensureFFmpeg() {
-  if (!ffmpegReady) {
-    await ffmpeg.load();
-    ffmpegReady = true;
-  }
+  if (ffmpegReady) return;
+  const coreBase = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
+  const coreURL = await toBlobURL(`${coreBase}/ffmpeg-core.js`, "text/javascript");
+  const wasmURL = await toBlobURL(`${coreBase}/ffmpeg-core.wasm`, "application/wasm");
+  await ffmpeg.load({ coreURL, wasmURL });
+  ffmpegReady = true;
 }
 
 document.getElementById("pickFiles").onclick = () => {
@@ -60,6 +64,7 @@ dropZone.addEventListener("dragover", e => {
 dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag"));
 dropZone.addEventListener("drop", async e => {
   e.preventDefault();
+  dropZone.classList.remove("drag");
   currentJob = await readFiles(e.dataTransfer.files);
 });
 
@@ -82,7 +87,7 @@ function sizeText(n) {
   return `${n.toFixed(1)} ${u[i]}`;
 }
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;"," >":"&gt;","\"":"&quot;","'":"&#39;" }[c] || c));
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;","\"":"&quot;","'":"&#39;" }[c] || c));
 }
 
 async function readFiles(fileList) {
@@ -101,9 +106,9 @@ async function readFiles(fileList) {
 }
 
 function render(items) {
+  const col = document.body.dataset.sort || "name";
+  const dir = document.body.dataset.dir || "asc";
   const sorted = [...items].sort((a, b) => {
-    const col = document.body.dataset.sort || "name";
-    const dir = document.body.dataset.dir || "asc";
     let va = a[col], vb = b[col];
     if (col === "size") { va = a.size; vb = b.size; }
     if (col === "ext") { va = a.ext; vb = b.ext; }
@@ -116,10 +121,11 @@ function render(items) {
     <div class="row">
       <div><input class="checkbox" type="checkbox" data-index="${idx}"></div>
       <div class="small">${sizeText(it.size)}</div>
-      <div class="small">${escapeHtml(it.ext)}</div>
+      <div class="small">${escapeHtml(it.ext || it.outExt || "")}</div>
       <div class="small">${escapeHtml(it.date)}</div>
       <div class="small item-name">${escapeHtml(it.name)}</div>
       <div class="small item-name">${escapeHtml(it.path)}</div>
+      <div class="small">${it.outputUrl ? `<a class="link" href="${it.outputUrl}" download="${it.outputName}">다운로드</a>` : ""}</div>
     </div>
   `).join("");
 }
@@ -150,21 +156,15 @@ document.getElementById("startBtn").onclick = async () => {
 
   for (let i = 0; i < currentJob.length; i++) {
     if (cancelFlag) break;
+
     const item = currentJob[i];
     const inputName = `in_${i}_${item.name}`;
     const outputName = `out_${i}.${target}`;
 
-    ffmpeg.FS("writeFile", inputName, await fetchFile(item.file));
+    await ffmpeg.writeFile(inputName, await fetchFile(item.file));
+    await ffmpeg.exec(["-i", inputName, outputName]);
 
-    if (currentMode === "audio") {
-      await ffmpeg.run("-i", inputName, "-vn", outputName);
-    } else if (currentMode === "photo") {
-      await ffmpeg.run("-i", inputName, outputName);
-    } else {
-      await ffmpeg.run("-i", inputName, outputName);
-    }
-
-    const data = ffmpeg.FS("readFile", outputName);
+    const data = await ffmpeg.readFile(outputName);
     const blob = new Blob([data.buffer], { type: `application/${target}` });
     const url = URL.createObjectURL(blob);
 
@@ -176,36 +176,44 @@ document.getElementById("startBtn").onclick = async () => {
       status: "완료"
     });
 
-    progressFill.style.width = `${Math.round(((i + 1) / currentJob.length) * 100)}%`;
-    progressText.textContent = `${Math.round(((i + 1) / currentJob.length) * 100)}%`;
+    const p = Math.round(((i + 1) / currentJob.length) * 100);
+    progressFill.style.width = `${p}%`;
+    progressText.textContent = `${p}%`;
   }
 
   currentJob = out;
-  renderResults(out);
+  render(currentJob);
 };
 
-function renderResults(items) {
-  list.innerHTML = items.map((it, idx) => `
-    <div class="row">
-      <div><input class="checkbox" type="checkbox" data-index="${idx}"></div>
-      <div class="small">${sizeText(it.size)}</div>
-      <div class="small">${escapeHtml(it.outExt)}</div>
-      <div class="small">${escapeHtml(it.date)}</div>
-      <div class="small item-name">${escapeHtml(it.name)}</div>
-      <div class="small item-name">${escapeHtml(it.path)}</div>
-      <div class="small"><a class="link" href="${it.outputUrl}" download="${it.outputName}">다운로드</a></div>
-    </div>
-  `).join("");
-}
+document.getElementById("downloadBtn").onclick = async () => {
+  const checked = [...document.querySelectorAll(".checkbox")]
+    .map((c, i) => c.checked ? i : -1)
+    .filter(i => i >= 0);
 
-document.getElementById("downloadBtn").onclick = () => {
-  const checked = [...document.querySelectorAll(".checkbox")].map((c, i) => c.checked ? i : -1).filter(i => i >= 0);
+  if (!checked.length) return alert("다운로드할 파일을 선택하세요.");
+
+  const zip = new JSZip();
   checked.forEach(i => {
     const item = currentJob[i];
     if (!item?.outputUrl) return;
-    const a = document.createElement("a");
-    a.href = item.outputUrl;
-    a.download = item.outputName;
-    a.click();
+    const folder = item.path.includes("/") ? item.path.split("/").slice(0, -1).join("/") : "";
+    const outName = item.outputName || `${item.name}`;
+    zip.file(folder ? `${folder}/${outName}` : outName, fetch(item.outputUrl).then(r => r.blob()));
   });
+
+  const files = [...checked].map(i => currentJob[i]).filter(Boolean);
+  const pack = new JSZip();
+
+  for (const item of files) {
+    const r = await fetch(item.outputUrl);
+    const b = await r.blob();
+    const rel = item.path.replace(/\.[^.]+$/, `.${item.outExt}`);
+    pack.file(rel, b);
+  }
+
+  const blob = await pack.generateAsync({ type: "blob" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `Media_Converter_${Date.now()}.zip`;
+  a.click();
 };

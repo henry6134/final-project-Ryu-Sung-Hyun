@@ -8,8 +8,8 @@ body{margin:0;background:#0f172a;color:#e5e7eb;font-family:system-ui,-apple-syst
 .upload-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
 .hint{font-size:14px;color:#cbd5e1}
 .dropzone{min-height:180px;border:2px dashed #475569;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#94a3b8;margin-bottom:14px;text-align:center;padding:18px}
+.dropzone.drag{border-color:#3b82f6;background:#0b1220}
 .convert-row,.result-actions,.progress-wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.select.big,.btn.big{font-size:18px}
 .select{min-width:220px}
 .arrow{font-size:22px;font-weight:700}
 .push-right{margin-left:auto}
@@ -18,7 +18,7 @@ body{margin:0;background:#0f172a;color:#e5e7eb;font-family:system-ui,-apple-syst
 .progress-wrap{margin-top:12px}
 .progress-bar{flex:1;height:16px;background:#334155;border-radius:999px;overflow:hidden;min-width:220px}
 #progressFill{width:0;height:100%;background:linear-gradient(90deg,#22c55e,#3b82f6)}
-.row{display:grid;grid-template-columns:34px 120px 100px 170px 1fr 1fr;gap:10px;padding:10px;border-bottom:1px solid #334155;align-items:center;font-size:14px}
+.row{display:grid;grid-template-columns:34px 120px 100px 170px 1fr 1fr 120px;gap:10px;padding:10px;border-bottom:1px solid #334155;align-items:center;font-size:14px}
 .table-head{font-weight:700;color:#94a3b8}
 .item-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .small{font-size:13px}

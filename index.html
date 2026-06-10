@@ -16,9 +16,7 @@
 
     <section class="panel upload">
       <div class="upload-top">
-        <div class="hint">
-          파일 또는 폴더를 업로드하세요. 폴더 업로드는 구조를 유지합니다.
-        </div>
+        <div class="hint">파일 또는 폴더를 업로드하세요. 폴더 구조는 유지됩니다.</div>
         <div class="upload-actions">
           <input id="fileInput" type="file" multiple hidden />
           <button id="pickFiles" class="btn">파일 업로드</button>
@@ -26,9 +24,7 @@
         </div>
       </div>
 
-      <div id="dropZone" class="dropzone">
-        여기에 파일/폴더를 끌어다 놓아도 됩니다.
-      </div>
+      <div id="dropZone" class="dropzone">여기에 파일/폴더를 끌어다 놓아도 됩니다.</div>
 
       <div class="convert-row">
         <select id="fromFormat" class="select big">
@@ -53,20 +49,20 @@
         <div id="progressText">0%</div>
       </div>
 
-      <div class="table-head row">
+      <div class="row table-head">
         <div></div>
         <div>파일 용량</div>
         <div>확장자</div>
         <div>날짜</div>
         <div>이름</div>
         <div>폴더</div>
+        <div>다운로드</div>
       </div>
 
       <div id="list"></div>
     </section>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
-  <script src="./app.js"></script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
