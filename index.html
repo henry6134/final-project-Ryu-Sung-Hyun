@@ -9,8 +9,7 @@
   .tabs{display:flex;gap:8px;padding:12px 14px;background:#fff;border-bottom:1px solid #d9dee6;position:sticky;top:0;z-index:10}
   .tab{padding:12px 22px;border:1px solid #cfd7e3;border-bottom:none;border-radius:14px 14px 0 0;background:#eef3f9;font-size:18px;cursor:pointer}
   .tab.active{background:#fff;font-weight:700;color:#1454d1}
-  .page{display:flex;flex-direction:column;min-height:calc(100vh - 58px)}
-  .top,.bottom{padding:16px} .top{flex:1;background:#fff;border-bottom:1px solid #dfe5ee}
+  .page{display:flex;flex-direction:column;min-height:calc(100vh - 58px)} .top,.bottom{padding:16px} .top{flex:1;background:#fff;border-bottom:1px solid #dfe5ee}
   .bottom{flex:1;background:#f8fafc}
   .drop{border:2px dashed #b8c5d6;border-radius:18px;min-height:280px;background:#fbfdff;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
   .drop.drag{border-color:#1454d1;background:#eef5ff}
@@ -34,9 +33,12 @@
   .small{font-size:12px;color:#667}
   .progress{margin-top:10px;font-size:13px;color:#1454d1;min-height:18px}
 </style>
-<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
-<script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script type="module">
+import { FFmpeg } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js';
+import { toBlobURL, fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js';
+window.FFmpegWASM = { FFmpeg, toBlobURL, fetchFile };
+</script>
 </head>
 <body>
 <div class="tabs">
@@ -84,8 +86,7 @@
   </section>
 </div>
 <script>
-const { FFmpeg } = FFmpegWASM;
-const { fetchFile } = FFmpegUtil;
+const { FFmpeg, toBlobURL, fetchFile } = FFmpegWASM;
 const ffmpeg = new FFmpeg();
 let loaded = false, files = [], results = [], sortKey = 'name', mode='audio';
 const $ = s => document.querySelector(s);
@@ -95,15 +96,15 @@ const now = ()=> new Date().toLocaleString('ko-KR');
 function renderSrc(){ const sel=$('#srcSelect'); sel.innerHTML='<option>파일 형식</option>' + [...new Set(files.map(f=>f.kind||ext(f.name)||'폴더'))].map(x=>`<option>${x}</option>`).join(''); }
 function sorted(){ return [...results].sort((a,b)=>{ if(sortKey==='size') return b.size-a.size; if(sortKey==='ext') return a.ext.localeCompare(b.ext,'ko'); if(sortKey==='date') return b.dateMs-a.dateMs; return a.name.localeCompare(b.name,'ko'); }); }
 function render(){ const tb=$('#rows'); tb.innerHTML=''; sorted().forEach((r,i)=>{ tb.innerHTML += `<tr><td><input class='chk' data-i='${i}' type='checkbox' ${r.checked?'checked':''}></td><td>${sizef(r.size)}</td><td>${r.ext}</td><td>${r.date}</td><td class='name'>${r.path||r.name}</td><td><button class='dl' data-dl='${i}'>다운로드</button></td></tr>`; }); }
-async function ensure(){ if(loaded) return; $('#progress').textContent='FFmpeg 로딩 중...'; await ffmpeg.load(); loaded=true; $('#progress').textContent=''; }
+async function ensure(){ if(loaded) return; $('#progress').textContent='FFmpeg 로딩 중...'; const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm'; const [coreURL, wasmURL, workerURL] = await Promise.all([ toBlobURL(base + '/ffmpeg-core.js', 'text/javascript'), toBlobURL(base + '/ffmpeg-core.wasm', 'application/wasm'), toBlobURL(base + '/ffmpeg-core.worker.js', 'text/javascript') ]); await ffmpeg.load({ coreURL, wasmURL, workerURL }); loaded=true; $('#progress').textContent=''; }
 async function convertOne(file){ const inName = file.path || file.name; const outExt = ($('#dstSelect').value||'').trim(); if(!outExt || $('#dstSelect').selectedIndex===0) throw new Error('변환 형식을 선택하세요');
-  const base = inName.replace(/\.[^.]+$/,''); const outName = base + '.' + outExt;
+  const base = inName.replace(/\\.[^.]+$/,''); const outName = base + '.' + outExt;
   await ffmpeg.writeFile(inName, await fetchFile(file.file));
   const args = ['-i', inName];
   if(mode==='audio' && ['mp3','wav','aac','flac','ogg','opus'].includes(outExt)) args.push('-vn');
   await ffmpeg.exec([...args, outName]);
   const data = await ffmpeg.readFile(outName);
-  return {name: outName, path: file.path ? file.path.replace(/\.[^.]+$/,'.'+outExt) : outName, ext: outExt, size: data.length, date: now(), dateMs: Date.now(), blob: new Blob([data.buffer],{type:'application/octet-stream'}), checked:true, dir:file.dir}; }
+  return {name: outName, path: file.path ? file.path.replace(/\\.[^.]+$/,'.'+outExt) : outName, ext: outExt, size: data.length, date: now(), dateMs: Date.now(), blob: new Blob([data.buffer],{type:'application/octet-stream'}), checked:true, dir:file.dir}; }
 async function handle(list){ files = [];
   for (const f of list) { const path = f.webkitRelativePath || f.relativePath || f.name; files.push({file:f,name:f.name,path,dir:path.includes('/')?path.split('/')[0]:'' , kind:ext(f.name)}); }
   renderSrc(); $('#progress').textContent = `${files.length}개 파일 준비됨`; }
