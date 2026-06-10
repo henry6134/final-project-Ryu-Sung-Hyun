@@ -1,17 +1,72 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Media Converter</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./src/styles/main.css">
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <div id="app"></div>
-  <script type="module" src="./src/main.js"></script>
+  <div class="app">
+    <header class="tabs">
+      <button class="tab active" data-mode="audio">오디오</button>
+      <button class="tab" data-mode="photo">사진</button>
+      <button class="tab" data-mode="video">영상</button>
+    </header>
+
+    <section class="panel upload">
+      <div class="upload-top">
+        <div class="hint">
+          파일 또는 폴더를 업로드하세요. 폴더 업로드는 구조를 유지합니다.
+        </div>
+        <div class="upload-actions">
+          <input id="fileInput" type="file" multiple hidden />
+          <button id="pickFiles" class="btn">파일 업로드</button>
+          <button id="pickFolder" class="btn">폴더 업로드</button>
+        </div>
+      </div>
+
+      <div id="dropZone" class="dropzone">
+        여기에 파일/폴더를 끌어다 놓아도 됩니다.
+      </div>
+
+      <div class="convert-row">
+        <select id="fromFormat" class="select big">
+          <option value="">파일 형식</option>
+        </select>
+        <span class="arrow">→</span>
+        <select id="toFormat" class="select big"></select>
+        <button id="startBtn" class="btn primary push-right">변환 시작</button>
+        <button id="cancelBtn" class="btn danger">취소</button>
+      </div>
+    </section>
+
+    <section class="panel results">
+      <div class="result-actions">
+        <button id="selectAllBtn" class="btn">전체 선택</button>
+        <button id="downloadBtn" class="btn primary">다운로드</button>
+        <button id="deleteBtn" class="btn danger">삭제</button>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar"><div id="progressFill"></div></div>
+        <div id="progressText">0%</div>
+      </div>
+
+      <div class="table-head row">
+        <div></div>
+        <div>파일 용량</div>
+        <div>확장자</div>
+        <div>날짜</div>
+        <div>이름</div>
+        <div>폴더</div>
+      </div>
+
+      <div id="list"></div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
