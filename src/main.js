@@ -29,9 +29,11 @@ let ffmpegLoaded = false
 async function loadFFmpeg() {
   if (ffmpegLoaded) return
   const coreBase  = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'
-  const coreURL   = await toBlobURL(`${coreBase}/ffmpeg-core.js`, 'text/javascript')
-  const wasmURL   = `${coreBase}/ffmpeg-core.wasm`
-  const workerURL = `${coreBase}/ffmpeg-core.worker.js`
+  const [coreURL, wasmURL, workerURL] = await Promise.all([
+    toBlobURL(`${coreBase}/ffmpeg-core.js`,        'text/javascript'),
+    toBlobURL(`${coreBase}/ffmpeg-core.wasm`,      'application/wasm'),
+    toBlobURL(`${coreBase}/ffmpeg-core.worker.js`, 'text/javascript'),
+  ])
   await ffmpeg.load({ coreURL, wasmURL, workerURL })
   ffmpegLoaded = true
 }
@@ -75,7 +77,7 @@ async function startConversion() {
       emit()
 
       try {
-        const inputExt  = item.file.name.split('.').pop()
+        const inputExt   = item.file.name.split('.').pop()
         const inputName  = `input_${outId.slice(0, 8)}.${inputExt}`
         const outputName = `output_${outId.slice(0, 8)}.${state.targetFormat}`
 
