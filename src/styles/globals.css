@@ -13,3 +13,8 @@ button, input, select { font: inherit; }
 .canvas-wrap { overflow: auto; border: 1px solid rgba(255,255,255,.15); width: fit-content; }
 .pixel-canvas { image-rendering: pixelated; display: block; cursor: crosshair; }
 .active { outline: 2px solid currentColor; }
+.erase-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}

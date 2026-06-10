@@ -1,4 +1,3 @@
-// src/components/CanvasBoard.jsx
 import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react'
 
 function CanvasBoardInner({ pixels, width, height, tool, onPaint, onPickColor }, ref) {

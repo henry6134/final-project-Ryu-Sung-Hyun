@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/pixel-maker/'
+  base: '/final-project-Ryu-Sung-Hyun/'
 })
