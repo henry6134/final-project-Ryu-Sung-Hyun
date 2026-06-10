@@ -58,5 +58,4 @@ function CanvasBoardInner({ pixels, width, height, tool, onPaint, onPickColor },
   )
 }
 
-const CanvasBoard = forwardRef(CanvasBoardInner)
-export default CanvasBoard
+export default forwardRef(CanvasBoardInner)

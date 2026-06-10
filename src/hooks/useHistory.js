@@ -1,4 +1,3 @@
-// src/hooks/useHistory.js
 import { useState } from 'react'
 
 export function useHistory(initial) {

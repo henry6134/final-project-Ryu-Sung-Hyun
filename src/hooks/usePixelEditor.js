@@ -24,7 +24,6 @@ export function usePixelEditor(width, height) {
   }
 
   const paint = (x, y) => applySquare(x, y, tool === 'pen' ? penSize : eraserSize, tool === 'pen' ? color : null)
-  const erase = (x, y) => applySquare(x, y, eraserSize, null)
   const getColorAt = (x, y) => pixels[y]?.[x] ?? null
   const fromJSON = (obj) => { if (obj?.pixels) set(obj.pixels) }
   const clearAll = () => set(makeBlank())
@@ -32,7 +31,7 @@ export function usePixelEditor(width, height) {
   return {
     pixels, tool, color, penSize, eraserSize,
     setTool, setColor, setPenSize, setEraserSize,
-    paint, erase, getColorAt, fromJSON, clearAll,
+    paint, getColorAt, fromJSON, clearAll,
     undo, redo, canUndo, canRedo
   }
 }

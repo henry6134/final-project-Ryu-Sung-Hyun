@@ -1,4 +1,3 @@
-// src/utils/exportFile.js
 export function downloadText(filename, text, type = 'application/json') {
   const blob = new Blob([text], { type })
   const url = URL.createObjectURL(blob)

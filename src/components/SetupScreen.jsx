@@ -1,8 +1,8 @@
-// src/components/SetupScreen.jsx
 import { useState } from 'react'
 import { PRESETS } from '../constants/presets'
 import { fitByRatio } from '../utils/ratio'
 import RatioPreview from './RatioPreview'
+import ThemeToggle from './ThemeToggle'
 
 export default function SetupScreen({ config, setConfig, onStart }) {
   const [presetIndex, setPresetIndex] = useState(4)
@@ -15,6 +15,11 @@ export default function SetupScreen({ config, setConfig, onStart }) {
 
   return (
     <div className={`page theme-${config.theme} setup-page`}>
+      <ThemeToggle
+        theme={config.theme}
+        onToggle={() => setConfig((c) => ({ ...c, theme: c.theme === 'light' ? 'dark' : 'light' }))}
+      />
+
       <h1>PIXEL MAKER</h1>
 
       <label className="field">
@@ -36,14 +41,6 @@ export default function SetupScreen({ config, setConfig, onStart }) {
           <input type="number" min="1" value={config.height} onChange={(e) => updateSize('height', Number(e.target.value))} />
         </label>
       </div>
-
-      <label className="field">
-        <span>테마</span>
-        <select value={config.theme} onChange={(e) => setConfig((c) => ({ ...c, theme: e.target.value }))}>
-          <option value="light">라이트</option>
-          <option value="dark">다크</option>
-        </select>
-      </label>
 
       <button className="primary" onClick={onStart}>시작</button>
     </div>

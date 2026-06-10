@@ -1,25 +1,19 @@
 export default function Toolbar({
   tool, setTool,
+  onOpenColor, onOpenExport, onOpenImport,
   onUndo, onRedo, canUndo, canRedo,
-  onImportJSON, onExportPNG, onExportJSON,
-  onToggleTheme, theme
+  onOpenSize, onOpenClear, onOpenSettings
 }) {
   return (
     <header className="toolbar">
-      <button className={tool === 'pen' ? 'active' : ''} onClick={() => setTool('pen')}>펜</button>
-      <button className={tool === 'eraser' ? 'active' : ''} onClick={() => setTool('eraser')}>지우개</button>
-      <button className={tool === 'eyedropper' ? 'active' : ''} onClick={() => setTool('eyedropper')}>색</button>
-
-      <button onClick={onImportJSON}>불러오기</button>
-      <button onClick={onExportPNG}>PNG</button>
-      <button onClick={onExportJSON}>JSON</button>
-
+      <button className={tool === 'pen' ? 'active' : ''} onClick={() => setTool('pen')} onDoubleClick={onOpenSize}>펜</button>
+      <button className={tool === 'eraser' ? 'active' : ''} onClick={() => setTool('eraser')} onDoubleClick={onOpenSize}>지우개</button>
+      <button onClick={onOpenColor}>색</button>
+      <button onClick={onOpenImport}>불러오기</button>
+      <button onClick={onOpenExport}>내보내기</button>
       <button onClick={onUndo} disabled={!canUndo}>Undo</button>
       <button onClick={onRedo} disabled={!canRedo}>Redo</button>
-
-      <button onClick={onToggleTheme}>
-        {theme === 'light' ? '다크' : '라이트'}
-      </button>
+      <button onClick={onOpenSettings} title="설정">⚙️</button>
     </header>
   )
 }

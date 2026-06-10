@@ -1,4 +1,3 @@
-// src/utils/ratio.js
 export function fitByRatio(preset, key, value) {
   if (!preset || preset.custom) return { [key]: value }
   const ratio = preset.width / preset.height
