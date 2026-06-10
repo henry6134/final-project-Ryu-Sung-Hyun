@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>미디어 컨버터</title>
 <style>
-  *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,'Apple SD Gothic Neo',sans-serif;background:#f4f6f8;color:#222}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,'Apple SD Gothic Neo',sans-serif;background:#f4f6f8;color:#222}
   .tabs{display:flex;gap:8px;padding:12px 14px;background:#fff;border-bottom:1px solid #d9dee6;position:sticky;top:0;z-index:10}
   .tab{padding:12px 22px;border:1px solid #cfd7e3;border-bottom:none;border-radius:14px 14px 0 0;background:#eef3f9;font-size:18px;cursor:pointer}
   .tab.active{background:#fff;font-weight:700;color:#1454d1}
-  .page{display:flex;flex-direction:column;min-height:calc(100vh - 58px)} .top,.bottom{padding:16px} .top{flex:1;background:#fff;border-bottom:1px solid #dfe5ee}
+  .page{display:flex;flex-direction:column;min-height:calc(100vh - 58px)}
+  .top,.bottom{padding:16px}
+  .top{flex:1;background:#fff;border-bottom:1px solid #dfe5ee}
   .bottom{flex:1;background:#f8fafc}
   .drop{border:2px dashed #b8c5d6;border-radius:18px;min-height:280px;background:#fbfdff;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
   .drop.drag{border-color:#1454d1;background:#eef5ff}
@@ -46,6 +49,7 @@ window.FFmpegWASM = { FFmpeg, toBlobURL, fetchFile };
   <button class="tab" data-mode="photo">사진</button>
   <button class="tab" data-mode="video">영상</button>
 </div>
+
 <div class="page">
   <section class="top">
     <div id="drop" class="drop">
@@ -54,20 +58,30 @@ window.FFmpegWASM = { FFmpeg, toBlobURL, fetchFile };
         <div class="small">폴더 업로드는 구조를 유지해 다운로드 ZIP으로 복원됩니다.</div>
       </div>
     </div>
+
     <input id="fileInput" type="file" multiple webkitdirectory style="display:none">
+
     <div class="toolbar">
       <select id="srcSelect"><option>파일 형식</option></select>
       <span class="arrow">→</span>
       <select id="dstSelect">
         <option>파일 형식</option>
-        <option value="mp3">mp3</option><option value="wav">wav</option><option value="aac">aac</option>
-        <option value="mp4">mp4</option><option value="webm">webm</option><option value="gif">gif</option>
-        <option value="jpg">jpg</option><option value="png">png</option><option value="webp">webp</option>
+        <option value="mp3">mp3</option>
+        <option value="wav">wav</option>
+        <option value="aac">aac</option>
+        <option value="mp4">mp4</option>
+        <option value="webm">webm</option>
+        <option value="gif">gif</option>
+        <option value="jpg">jpg</option>
+        <option value="png">png</option>
+        <option value="webp">webp</option>
       </select>
       <button id="convertBtn" class="convert">변환 시작</button>
     </div>
+
     <div id="progress" class="progress"></div>
   </section>
+
   <section class="bottom">
     <div class="listbar">
       <h2>결과</h2>
@@ -79,50 +93,187 @@ window.FFmpegWASM = { FFmpeg, toBlobURL, fetchFile };
         <button id="downloadSelected" class="dl">다운로드</button>
       </div>
     </div>
+
     <table>
-      <thead><tr><th>선택</th><th>파일 용량</th><th>확장자</th><th>날짜</th><th>이름</th><th>다운로드</th></tr></thead>
+      <thead>
+        <tr>
+          <th>선택</th>
+          <th>파일 용량</th>
+          <th>확장자</th>
+          <th>날짜</th>
+          <th>이름</th>
+          <th>다운로드</th>
+        </tr>
+      </thead>
       <tbody id="rows"></tbody>
     </table>
   </section>
 </div>
+
 <script>
 const { FFmpeg, toBlobURL, fetchFile } = FFmpegWASM;
 const ffmpeg = new FFmpeg();
 let loaded = false, files = [], results = [], sortKey = 'name', mode='audio';
+
 const $ = s => document.querySelector(s);
 const ext = n => (n.split('.').pop()||'').toLowerCase();
 const sizef = b => b<1024?`${b} B`:b<1048576?`${(b/1024).toFixed(1)} KB`:`${(b/1048576).toFixed(1)} MB`;
 const now = ()=> new Date().toLocaleString('ko-KR');
-function renderSrc(){ const sel=$('#srcSelect'); sel.innerHTML='<option>파일 형식</option>' + [...new Set(files.map(f=>f.kind||ext(f.name)||'폴더'))].map(x=>`<option>${x}</option>`).join(''); }
-function sorted(){ return [...results].sort((a,b)=>{ if(sortKey==='size') return b.size-a.size; if(sortKey==='ext') return a.ext.localeCompare(b.ext,'ko'); if(sortKey==='date') return b.dateMs-a.dateMs; return a.name.localeCompare(b.name,'ko'); }); }
-function render(){ const tb=$('#rows'); tb.innerHTML=''; sorted().forEach((r,i)=>{ tb.innerHTML += `<tr><td><input class='chk' data-i='${i}' type='checkbox' ${r.checked?'checked':''}></td><td>${sizef(r.size)}</td><td>${r.ext}</td><td>${r.date}</td><td class='name'>${r.path||r.name}</td><td><button class='dl' data-dl='${i}'>다운로드</button></td></tr>`; }); }
-async function ensure(){ if(loaded) return; $('#progress').textContent='FFmpeg 로딩 중...'; const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm'; const [coreURL, wasmURL, workerURL] = await Promise.all([ toBlobURL(base + '/ffmpeg-core.js', 'text/javascript'), toBlobURL(base + '/ffmpeg-core.wasm', 'application/wasm'), toBlobURL(base + '/ffmpeg-core.worker.js', 'text/javascript') ]); await ffmpeg.load({ coreURL, wasmURL, workerURL }); loaded=true; $('#progress').textContent=''; }
-async function convertOne(file){ const inName = file.path || file.name; const outExt = ($('#dstSelect').value||'').trim(); if(!outExt || $('#dstSelect').selectedIndex===0) throw new Error('변환 형식을 선택하세요');
-  const base = inName.replace(/\\.[^.]+$/,''); const outName = base + '.' + outExt;
+
+function renderSrc(){
+  const sel = $('#srcSelect');
+  sel.innerHTML = '<option>파일 형식</option>' + [...new Set(files.map(f=>f.kind||ext(f.name)||'폴더'))].map(x=>`<option>${x}</option>`).join('');
+}
+
+function sorted(){
+  return [...results].sort((a,b)=>{
+    if(sortKey==='size') return b.size-a.size;
+    if(sortKey==='ext') return a.ext.localeCompare(b.ext,'ko');
+    if(sortKey==='date') return b.dateMs-a.dateMs;
+    return a.name.localeCompare(b.name,'ko');
+  });
+}
+
+function render(){
+  const tb = $('#rows');
+  tb.innerHTML = '';
+  sorted().forEach((r,i)=>{
+    tb.innerHTML += `<tr>
+      <td><input class='chk' data-i='${i}' type='checkbox' ${r.checked?'checked':''}></td>
+      <td>${sizef(r.size)}</td>
+      <td>${r.ext}</td>
+      <td>${r.date}</td>
+      <td class='name'>${r.path||r.name}</td>
+      <td><button class='dl' data-dl='${i}'>다운로드</button></td>
+    </tr>`;
+  });
+}
+
+async function ensure(){
+  if(loaded) return;
+  $('#progress').textContent = 'FFmpeg 로딩 중...';
+  const base = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+  const [coreURL, wasmURL, workerURL] = await Promise.all([
+    toBlobURL(`${base}/ffmpeg-core.js`, 'text/javascript'),
+    toBlobURL(`${base}/ffmpeg-core.wasm`, 'application/wasm'),
+    toBlobURL(`${base}/ffmpeg-core.worker.js`, 'text/javascript')
+  ]);
+  await ffmpeg.load({ coreURL, wasmURL, workerURL });
+  loaded = true;
+  $('#progress').textContent = '';
+}
+
+async function convertOne(file){
+  const inName = file.path || file.name;
+  const outExt = ($('#dstSelect').value||'').trim();
+  if(!outExt || $('#dstSelect').selectedIndex===0) throw new Error('변환 형식을 선택하세요');
+  const base = inName.replace(/\.[^.]+$/,'');
+  const outName = base + '.' + outExt;
+
   await ffmpeg.writeFile(inName, await fetchFile(file.file));
   const args = ['-i', inName];
   if(mode==='audio' && ['mp3','wav','aac','flac','ogg','opus'].includes(outExt)) args.push('-vn');
   await ffmpeg.exec([...args, outName]);
+
   const data = await ffmpeg.readFile(outName);
-  return {name: outName, path: file.path ? file.path.replace(/\\.[^.]+$/,'.'+outExt) : outName, ext: outExt, size: data.length, date: now(), dateMs: Date.now(), blob: new Blob([data.buffer],{type:'application/octet-stream'}), checked:true, dir:file.dir}; }
-async function handle(list){ files = [];
-  for (const f of list) { const path = f.webkitRelativePath || f.relativePath || f.name; files.push({file:f,name:f.name,path,dir:path.includes('/')?path.split('/')[0]:'' , kind:ext(f.name)}); }
-  renderSrc(); $('#progress').textContent = `${files.length}개 파일 준비됨`; }
-async function doConvert(){ try{ await ensure(); $('#convertBtn').disabled=true; results=[]; for (let i=0;i<files.length;i++){ $('#progress').textContent=`변환 중 ${i+1}/${files.length}`; results.push(await convertOne(files[i])); render(); }
-    $('#progress').textContent='변환 완료'; } catch(e){ $('#progress').textContent = e.message; } finally { $('#convertBtn').disabled=false; } }
-async function downloadSelected(){ const chosen = results.filter(r=>r.checked); if(!chosen.length) return alert('선택된 항목이 없습니다.'); if(chosen.length===1 && !chosen[0].path.includes('/')){ const a=document.createElement('a'); a.href=URL.createObjectURL(chosen[0].blob); a.download=chosen[0].name; a.click(); return; }
-  const zip = new JSZip(); chosen.forEach(r=>{ const p = r.path || r.name; zip.file(p, r.blob); }); const blob = await zip.generateAsync({type:'blob'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='converted_files.zip'; a.click(); }
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); mode=b.dataset.mode; });
-$('#drop').onclick=()=>$('#fileInput').click();
-$('#drop').ondragover=e=>{e.preventDefault();$('#drop').classList.add('drag')};
-$('#drop').ondragleave=()=>$('#drop').classList.remove('drag');
-$('#drop').ondrop=e=>{e.preventDefault();$('#drop').classList.remove('drag'); handle(e.dataTransfer.files)};
-$('#fileInput').onchange=e=>handle(e.target.files);
-$('#convertBtn').onclick=doConvert;
-$('#downloadSelected').onclick=downloadSelected;
-document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{ sortKey=b.dataset.sort; render(); });
-document.addEventListener('change',e=>{ if(e.target.matches('.chk')){ results[+e.target.dataset.i].checked = e.target.checked; } });
-document.addEventListener('click',async e=>{ if(!e.target.dataset.dl) return; const r = sorted()[+e.target.dataset.dl]; const a=document.createElement('a'); a.href=URL.createObjectURL(r.blob); a.download=r.name; a.click(); });
+  return {
+    name: outName,
+    path: file.path ? file.path.replace(/\.[^.]+$/,'.'+outExt) : outName,
+    ext: outExt,
+    size: data.length,
+    date: now(),
+    dateMs: Date.now(),
+    blob: new Blob([data.buffer],{type:'application/octet-stream'}),
+    checked:true,
+    dir:file.dir
+  };
+}
+
+async function handle(list){
+  files = [];
+  for (const f of list) {
+    const path = f.webkitRelativePath || f.relativePath || f.name;
+    files.push({file:f,name:f.name,path,dir:path.includes('/')?path.split('/')[0]:'',kind:ext(f.name)});
+  }
+  renderSrc();
+  $('#progress').textContent = `${files.length}개 파일 준비됨`;
+}
+
+async function doConvert(){
+  try{
+    await ensure();
+    $('#convertBtn').disabled = true;
+    results = [];
+    for (let i=0;i<files.length;i++){
+      $('#progress').textContent = `변환 중 ${i+1}/${files.length}`;
+      results.push(await convertOne(files[i]));
+      render();
+    }
+    $('#progress').textContent = '변환 완료';
+  } catch(e){
+    $('#progress').textContent = e.message;
+  } finally {
+    $('#convertBtn').disabled = false;
+  }
+}
+
+async function downloadSelected(){
+  const chosen = results.filter(r=>r.checked);
+  if(!chosen.length) return alert('선택된 항목이 없습니다.');
+
+  if(chosen.length===1 && !chosen[0].path.includes('/')){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(chosen[0].blob);
+    a.download=chosen[0].name;
+    a.click();
+    return;
+  }
+
+  const zip = new JSZip();
+  chosen.forEach(r=>{
+    const p = r.path || r.name;
+    zip.file(p, r.blob);
+  });
+  const blob = await zip.generateAsync({type:'blob'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='converted_files.zip';
+  a.click();
+}
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  mode = b.dataset.mode;
+});
+
+$('#drop').onclick = ()=>$('#fileInput').click();
+$('#drop').ondragover = e=>{e.preventDefault(); $('#drop').classList.add('drag')};
+$('#drop').ondragleave = ()=>$('#drop').classList.remove('drag');
+$('#drop').ondrop = e=>{e.preventDefault(); $('#drop').classList.remove('drag'); handle(e.dataTransfer.files)};
+$('#fileInput').onchange = e=>handle(e.target.files);
+$('#convertBtn').onclick = doConvert;
+$('#downloadSelected').onclick = downloadSelected;
+
+document.querySelectorAll('[data-sort]').forEach(b=>b.onclick=()=>{
+  sortKey = b.dataset.sort;
+  render();
+});
+
+document.addEventListener('change',e=>{
+  if(e.target.matches('.chk')){
+    results[+e.target.dataset.i].checked = e.target.checked;
+  }
+});
+
+document.addEventListener('click',async e=>{
+  if(!e.target.dataset.dl) return;
+  const r = sorted()[+e.target.dataset.dl];
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(r.blob);
+  a.download=r.name;
+  a.click();
+});
 </script>
 </body>
 </html>
