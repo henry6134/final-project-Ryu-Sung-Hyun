@@ -17,17 +17,15 @@ function RatioPreview({ width, height }) {
   }
   return (
     <div className="ratio-preview-wrap">
-      <div
-        className="ratio-preview-box"
-        style={{ width: `${w}px`, height: `${h}px` }}
-      />
+      <div className="ratio-preview-box" style={{ width: `${w}px`, height: `${h}px` }} />
       <span className="ratio-label">{width} × {height} px</span>
     </div>
   )
 }
 
 export default function SetupScreen({ config, setConfig, onStart, onToggleTheme }) {
-  const [presetIndex, setPresetIndex] = useState(4)
+  const [presetIndex, setPresetIndex] = useState(7) // 사용자 지정 default
+
   const preset = PRESETS[presetIndex]
 
   const updateSize = (key, value) => {
@@ -43,6 +41,11 @@ export default function SetupScreen({ config, setConfig, onStart, onToggleTheme 
       const newH = Math.max(1, Math.round(config.width / ratio))
       setConfig((c) => ({ ...c, height: newH }))
     }
+  }
+
+  // 가로 ↔ 세로 전환
+  const flipOrientation = () => {
+    setConfig((c) => ({ ...c, width: c.height, height: c.width }))
   }
 
   return (
@@ -77,19 +80,27 @@ export default function SetupScreen({ config, setConfig, onStart, onToggleTheme 
           <div className="field">
             <span>가로 (px)</span>
             <input
-              type="number"
-              min="1"
-              max="512"
+              type="number" min="1" max="512"
               value={config.width}
               onChange={(e) => updateSize('width', Number(e.target.value))}
             />
           </div>
+
+          {/* 가로↔세로 전환 버튼 */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 1 }}>
+            <button
+              onClick={flipOrientation}
+              title="가로 ↔ 세로 전환"
+              style={{ width: 36, height: 36, padding: 0, fontSize: 16, flexShrink: 0 }}
+            >
+              ⇄
+            </button>
+          </div>
+
           <div className="field">
             <span>세로 (px)</span>
             <input
-              type="number"
-              min="1"
-              max="512"
+              type="number" min="1" max="512"
               value={config.height}
               onChange={(e) => updateSize('height', Number(e.target.value))}
             />

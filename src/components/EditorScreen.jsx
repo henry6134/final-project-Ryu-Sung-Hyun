@@ -6,7 +6,6 @@ import SizePopup from './SizePopup'
 import ExportPopup from './ExportPopup'
 import ImportPopup from './ImportPopup'
 import ConfirmPopup from './ConfirmPopup'
-import ThemeToggle from './ThemeToggle'
 import { usePixelEditor } from '../hooks/usePixelEditor'
 import { downloadCanvasPNG, downloadText } from '../utils/exportFile'
 import { openFile, readTextFile, readFileAsDataURL } from '../utils/importFile'
@@ -15,12 +14,13 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
   const editor = usePixelEditor(config.width, config.height)
   const canvasRef = useRef(null)
 
-  const [showColor, setShowColor] = useState(false)
+  const [showColor, setShowColor]   = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showImport, setShowImport] = useState(false)
-  const [showClear, setShowClear] = useState(false)
-  const [sizeMode, setSizeMode] = useState(null)    // 'pen' | 'eraser' | null
+  const [showClear, setShowClear]   = useState(false)
+  const [sizeMode, setSizeMode]     = useState(null)
   const [showSettings, setShowSettings] = useState(false)
+  const [bgImage, setBgImage]       = useState(null) // data URL
 
   // ── Export ──────────────────────────────────────
   const exportJSON = () =>
@@ -29,9 +29,9 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
       JSON.stringify({ width: config.width, height: config.height, pixels: editor.pixels }, null, 2)
     )
 
-  // ── Import ──────────────────────────────────────
-  const importPNG = async (fileArg) => {
-    const file = fileArg || (await openFile('.png'))
+  // ── Import helpers ───────────────────────────────
+  const importPixelFromPNG = async (fileArg) => {
+    const file = fileArg || (await openFile('.png,.jpg,.jpeg,.webp'))
     if (!file) return
     const dataUrl = await readFileAsDataURL(file)
     const img = new Image()
@@ -54,30 +54,37 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
     img.src = dataUrl
   }
 
-  const importJSON = async () => {
-    const file = await openFile('.json,.png')
+  const importBgFromPNG = async () => {
+    const file = await openFile('.png,.jpg,.jpeg,.webp')
     if (!file) return
-    if (file.type.includes('png')) return importPNG(file)
+    const dataUrl = await readFileAsDataURL(file)
+    setBgImage(dataUrl)
+  }
+
+  const importJSON = async () => {
+    const file = await openFile('.json,.png,.jpg,.jpeg,.webp')
+    if (!file) return
+    if (file.type.startsWith('image/')) return importPixelFromPNG(file)
     const text = await readTextFile(file)
     editor.fromJSON(JSON.parse(text))
   }
 
   const openImport = async (kind) => {
     setShowImport(false)
-    if (kind === 'json') await importJSON()
-    else await importPNG()
+    if (kind === 'json')      await importJSON()
+    if (kind === 'png-pixel') await importPixelFromPNG()
+    if (kind === 'png-bg')    await importBgFromPNG()
   }
 
-  // ── Tool click: second click = size popup (pen) / clear popup (eraser) ──
+  // ── Tool click ───────────────────────────────────
   const handleToolClick = (nextTool) => {
     if (editor.tool === nextTool) {
-      if (nextTool === 'pen')    { setSizeMode('pen');    return }
-      if (nextTool === 'eraser') { setShowClear(true);    return }
+      if (nextTool === 'pen')    { setSizeMode('pen');   return }
+      if (nextTool === 'eraser') { setShowClear(true);   return }
     }
     editor.setTool(nextTool)
   }
 
-  // Long-press on eraser → eraser size (right-click fallback)
   const handleEraserContextMenu = (e) => {
     e.preventDefault()
     setSizeMode('eraser')
@@ -90,12 +97,11 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
 
   return (
     <div className={`page theme-${config.theme} editor-page`}>
-      <ThemeToggle theme={config.theme} onToggle={onToggleTheme} />
-
       <Toolbar
         tool={editor.tool}
         setTool={handleToolClick}
         color={editor.color}
+        theme={config.theme}
         onOpenColor={() => setShowColor(true)}
         onOpenExport={() => setShowExport(true)}
         onOpenImport={() => setShowImport(true)}
@@ -105,6 +111,7 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
         canRedo={editor.canRedo}
         onOpenSettings={() => setShowSettings(true)}
         onEraserSize={handleEraserContextMenu}
+        onToggleTheme={onToggleTheme}
       />
 
       {/* Canvas — always centered */}
@@ -115,6 +122,7 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
           width={config.width}
           height={config.height}
           tool={editor.tool}
+          bgImage={bgImage}
           onPaint={editor.paint}
           onPickColor={(x, y) => {
             editor.setColor(editor.getColorAt(x, y) || '#000000')
@@ -125,9 +133,7 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
 
       <div className="editor-footer">
         <button onClick={onBack}>← 뒤로</button>
-        <span className="canvas-info">
-          {config.width} × {config.height} px
-        </span>
+        <span className="canvas-info">{config.width} × {config.height} px</span>
       </div>
 
       {/* ── Color popup ── */}
@@ -143,7 +149,6 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
         </div>
       )}
 
-      {/* ── Export popup ── */}
       {showExport && (
         <ExportPopup
           onPNG={() => { downloadCanvasPNG(canvasRef.current); setShowExport(false) }}
@@ -152,15 +157,10 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
         />
       )}
 
-      {/* ── Import popup ── */}
       {showImport && (
-        <ImportPopup
-          onImport={openImport}
-          onClose={() => setShowImport(false)}
-        />
+        <ImportPopup onImport={openImport} onClose={() => setShowImport(false)} />
       )}
 
-      {/* ── Clear confirm ── */}
       {showClear && (
         <ConfirmPopup
           title="모두 지우기"
@@ -172,27 +172,13 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
         />
       )}
 
-      {/* ── Pen size popup ── */}
       {sizeMode === 'pen' && (
-        <SizePopup
-          title="펜 크기"
-          value={editor.penSize}
-          setValue={editor.setPenSize}
-          onClose={() => setSizeMode(null)}
-        />
+        <SizePopup title="펜 크기" value={editor.penSize} setValue={editor.setPenSize} onClose={() => setSizeMode(null)} />
       )}
-
-      {/* ── Eraser size popup ── (accessible via long-press or separate flow) */}
       {sizeMode === 'eraser' && (
-        <SizePopup
-          title="지우개 크기"
-          value={editor.eraserSize}
-          setValue={editor.setEraserSize}
-          onClose={() => setSizeMode(null)}
-        />
+        <SizePopup title="지우개 크기" value={editor.eraserSize} setValue={editor.setEraserSize} onClose={() => setSizeMode(null)} />
       )}
 
-      {/* ── Settings ── */}
       {showSettings && (
         <ConfirmPopup
           title="설정으로 이동"

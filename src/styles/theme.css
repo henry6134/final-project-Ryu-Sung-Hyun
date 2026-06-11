@@ -114,21 +114,13 @@ select:focus, input[type="number"]:focus, input[type="text"]:focus {
   border-bottom: 1px solid var(--toolbar-border);
 }
 
-/* ── Theme toggle button (fixed top-right) ── */
+/* ── Theme toggle — lives inside toolbar ── */
 .theme-toggle {
-  position: fixed;
-  top: 14px;
-  right: 16px;
-  z-index: 300;
   width: 36px;
   height: 36px;
   padding: 0;
-  border-radius: 50%;
-  font-size: 16px;
+  border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }

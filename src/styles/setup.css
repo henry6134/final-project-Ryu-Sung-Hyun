@@ -81,3 +81,15 @@
   border-radius: 9px;
   padding: 12px;
 }
+
+/* setup 화면에서만 테마 토글을 fixed 우상단에 */
+.setup-page .theme-toggle {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 300;
+  border-radius: 50%;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}

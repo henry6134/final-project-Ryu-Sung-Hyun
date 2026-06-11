@@ -38,6 +38,9 @@
   padding: 0 12px;
   font-size: 13px;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .toolbar .tool-icon-btn {
