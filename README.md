@@ -40,11 +40,11 @@
   <tr>
     <td align="center">
       <img src="./setUp.png" width="576" height="360">      
-      <br/><sub><b>초기 화면</b></sub>
+      <br/><sub><b>초기 화면</b><br/>접속 시, 가장 처음 보는 화면</sub>
     </td>
     <td align="center">      
       <img src="./ratioSet.png" width="576" height="360">
-      <br/><sub><b>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</b></sub>
+      <br/><sub><b>초기 화면 설정</b>b><br/>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</sub>
     </td>
     <td align="center">
       <img src="./editorScreen.png" width="576" height="360">
