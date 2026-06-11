@@ -44,7 +44,7 @@
     </td>
     <td align="center">      
       <img src="./ratioSet.png" width="576" height="360">
-      <br/><sub><br/>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</sub>
+      <br/><sub><b>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</b></sub>
     </td>
     <td align="center">
       <img src="./editorScreen.png" width="576" height="360">
