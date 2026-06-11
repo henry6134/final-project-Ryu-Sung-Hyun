@@ -1,4 +1,4 @@
-export default function ExportPopup({ onPNG, onJSON, onClose }) {
+export default function ExportPopup({ onPNG, onJPG, onJSON, onClose }) {
   return (
     <div className="modal-backdrop" onMouseDown={onClose}>
       <div className="modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
@@ -7,7 +7,11 @@ export default function ExportPopup({ onPNG, onJSON, onClose }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={onPNG} style={{ textAlign: 'left', padding: '10px 14px' }}>
             <span style={{ fontWeight: 600 }}>PNG</span>
-            <span style={{ marginLeft: 10, fontSize: 12, color: 'var(--text-muted)' }}>이미지 파일로 내보내기</span>
+            <span style={{ marginLeft: 10, fontSize: 12, color: 'var(--text-muted)' }}>투명 배경 이미지</span>
+          </button>
+          <button onClick={onJPG} style={{ textAlign: 'left', padding: '10px 14px' }}>
+            <span style={{ fontWeight: 600 }}>JPG</span>
+            <span style={{ marginLeft: 10, fontSize: 12, color: 'var(--text-muted)' }}>흰 배경 포함 이미지</span>
           </button>
           <button onClick={onJSON} style={{ textAlign: 'left', padding: '10px 14px' }}>
             <span style={{ fontWeight: 600 }}>JSON</span>

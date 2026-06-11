@@ -69,6 +69,7 @@
 
 .canvas-wrap {
   border-radius: 2px;
+  background: #ffffff;
   box-shadow:
     0 0 0 1px var(--border-strong),
     0 8px 32px rgba(0,0,0,0.18);
@@ -93,7 +94,7 @@
   margin-left: auto;
 }
 
-/* ── Color swatch in toolbar ── */
+/* ── Color chip in toolbar ── */
 .color-chip {
   width: 22px;
   height: 22px;
@@ -105,47 +106,67 @@
   vertical-align: middle;
 }
 
-/* ── Color panel inside modal ── */
-.color-grid {
+/* ── Color panel v2 ── */
+.color-panel-v2 {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 280px;
 }
-.color-swatches {
+.cp-section { display: flex; flex-direction: column; gap: 6px; }
+.cp-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.cp-swatches {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
 }
-.color-swatch {
-  width: 100%;
+.cp-swatch {
   aspect-ratio: 1;
-  border-radius: 5px;
-  border: 2px solid transparent;
+  border-radius: 3px;
+  border: 1.5px solid transparent;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.1s;
+  transition: transform 0.1s, border-color 0.1s;
 }
-.color-swatch:hover { transform: scale(1.15); border-color: var(--border-strong); }
-.color-swatch.selected { border-color: var(--accent); }
+.cp-swatch:hover    { transform: scale(1.25); border-color: var(--border-strong); }
+.cp-swatch.selected { border-color: var(--accent); outline: 1px solid var(--accent); }
 
-.color-inputs {
+.cp-sliders { gap: 8px; }
+
+.cp-bottom {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 8px;
 }
-.color-inputs input[type="text"] {
-  flex: 1;
+.cp-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  flex-shrink: 0;
+}
+.cp-hex-input {
+  width: 88px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-}
-.color-inputs input[type="color"] {
-  width: 36px;
-  height: 36px;
-  padding: 2px;
-  border-radius: 7px;
-  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--bg-raised);
+  color: var(--text);
+  outline: none;
+}
+.cp-hex-input:focus { border-color: var(--accent); }
+.cp-rgb {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 /* ── Size popup ── */

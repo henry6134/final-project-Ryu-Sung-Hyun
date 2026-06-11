@@ -25,7 +25,10 @@ function CanvasBoardInner({ pixels, width, height, tool, onPaint, onPickColor, b
     ctx.clearRect(0, 0, c.width, c.height)
 
     const draw = () => {
-      // 배경 이미지
+      // 항상 흰색 배경 먼저 (라이트/다크 모두 용지는 흰색)
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, c.width, c.height)
+
       if (bgImage) {
         const img = new Image()
         img.onload = () => {

@@ -7,7 +7,7 @@ import ExportPopup from './ExportPopup'
 import ImportPopup from './ImportPopup'
 import ConfirmPopup from './ConfirmPopup'
 import { usePixelEditor } from '../hooks/usePixelEditor'
-import { downloadCanvasPNG, downloadText } from '../utils/exportFile'
+import { downloadCanvasPNG, downloadCanvasJPG, downloadText } from '../utils/exportFile'
 import { openFile, readTextFile, readFileAsDataURL } from '../utils/importFile'
 
 export default function EditorScreen({ config, setConfig, onBack, onToggleTheme }) {
@@ -20,7 +20,8 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
   const [showClear, setShowClear]   = useState(false)
   const [sizeMode, setSizeMode]     = useState(null)
   const [showSettings, setShowSettings] = useState(false)
-  const [bgImage, setBgImage]       = useState(null) // data URL
+  const [bgImage, setBgImage]       = useState(null)
+  const [colorHistory, setColorHistory] = useState([]) // data URL
 
   // ── Export ──────────────────────────────────────
   const exportJSON = () =>
@@ -141,7 +142,12 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
         <div className="modal-backdrop" onMouseDown={() => setShowColor(false)}>
           <div className="modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
             <h3>색 선택</h3>
-            <ColorPanel color={editor.color} setColor={editor.setColor} />
+            <ColorPanel
+              color={editor.color}
+              setColor={editor.setColor}
+              history={colorHistory}
+              setHistory={setColorHistory}
+            />
             <div className="modal-actions">
               <button className="primary" onClick={() => setShowColor(false)}>확인</button>
             </div>
@@ -152,6 +158,7 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
       {showExport && (
         <ExportPopup
           onPNG={() => { downloadCanvasPNG(canvasRef.current); setShowExport(false) }}
+          onJPG={() => { downloadCanvasJPG(canvasRef.current); setShowExport(false) }}
           onJSON={() => { exportJSON(); setShowExport(false) }}
           onClose={() => setShowExport(false)}
         />

@@ -23,15 +23,82 @@ function RatioPreview({ width, height }) {
   )
 }
 
-export default function SetupScreen({ config, setConfig, onStart, onToggleTheme }) {
-  const [presetIndex, setPresetIndex] = useState(7) // 사용자 지정 default
+// 숫자 입력 — 빈 값 허용, blur 시 0으로 fallback
+function NumberInput({ label, value, onChange }) {
+  const [raw, setRaw] = useState(String(value))
 
-  const preset = PRESETS[presetIndex]
+  // 부모 value가 바뀌면 raw 동기화 (단, 포커스 중엔 무시)
+  // → 간단하게 controlled 방식으로 처리
+  const handleChange = (e) => {
+    const v = e.target.value
+    setRaw(v)
+    const n = parseInt(v, 10)
+    if (!isNaN(n) && n >= 1) onChange(n)
+  }
 
-  const updateSize = (key, value) => {
-    const next = fitByRatio(preset, key, value)
+  const handleBlur = () => {
+    const n = parseInt(raw, 10)
+    if (isNaN(n) || n < 1) {
+      setRaw('1')
+      onChange(1)
+    } else {
+      setRaw(String(n))
+      onChange(n)
+    }
+  }
+
+  // 부모에서 value가 바뀌면 raw도 맞춰줌 (플립 등)
+  // useEffect 없이 render마다 비교
+  const strVal = String(value)
+  if (raw !== strVal && document.activeElement?.dataset?.field !== label) {
+    // 포커스 아닌 경우에만 덮어쓰기
+  }
+
+  return (
+    <div className="field">
+      <span>{label}</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        data-field={label}
+        value={raw}
+        onChange={handleChange}
+        onFocus={(e) => {
+          // 포커스 시 0이면 전체 선택
+          if (raw === '0') e.target.select()
+        }}
+        onBlur={handleBlur}
+        style={{ width: '100%' }}
+      />
+    </div>
+  )
+}
+
+// flip-aware NumberInput wrapper
+function SizeInput({ label, valueKey, config, setConfig, preset }) {
+  const value = config[valueKey]
+
+  const handleChange = (n) => {
+    const next = fitByRatio(preset, valueKey, n)
     setConfig((c) => ({ ...c, ...next }))
   }
+
+  return <NumberInput label={label} value={value} onChange={handleChange} />
+}
+
+// 플립 버튼 SVG
+const FlipIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 5h12M11 2l3 3-3 3"/>
+    <path d="M14 11H2M5 8l-3 3 3 3"/>
+  </svg>
+)
+
+export default function SetupScreen({ config, setConfig, onStart, onToggleTheme }) {
+  const [presetIndex, setPresetIndex] = useState(7)
+  const preset = PRESETS[presetIndex]
 
   const handlePresetChange = (idx) => {
     setPresetIndex(idx)
@@ -43,7 +110,6 @@ export default function SetupScreen({ config, setConfig, onStart, onToggleTheme 
     }
   }
 
-  // 가로 ↔ 세로 전환
   const flipOrientation = () => {
     setConfig((c) => ({ ...c, width: c.height, height: c.width }))
   }
@@ -77,34 +143,16 @@ export default function SetupScreen({ config, setConfig, onStart, onToggleTheme 
         <RatioPreview width={config.width} height={config.height} />
 
         <div className="size-row">
-          <div className="field">
-            <span>가로 (px)</span>
-            <input
-              type="number" min="1" max="512"
-              value={config.width}
-              onChange={(e) => updateSize('width', Number(e.target.value))}
-            />
-          </div>
+          <SizeInput label="가로 (px)" valueKey="width"  config={config} setConfig={setConfig} preset={preset} />
 
-          {/* 가로↔세로 전환 버튼 */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 1 }}>
-            <button
-              onClick={flipOrientation}
-              title="가로 ↔ 세로 전환"
-              style={{ width: 36, height: 36, padding: 0, fontSize: 16, flexShrink: 0 }}
-            >
-              ⇄
+          {/* 플립 버튼: 입력란과 같은 높이, 둥근 사각형 */}
+          <div className="flip-btn-wrap">
+            <button className="flip-btn" onClick={flipOrientation} title="가로 ↔ 세로 전환">
+              <FlipIcon />
             </button>
           </div>
 
-          <div className="field">
-            <span>세로 (px)</span>
-            <input
-              type="number" min="1" max="512"
-              value={config.height}
-              onChange={(e) => updateSize('height', Number(e.target.value))}
-            />
-          </div>
+          <SizeInput label="세로 (px)" valueKey="height" config={config} setConfig={setConfig} preset={preset} />
         </div>
 
         <button className="primary setup-start" onClick={onStart}>

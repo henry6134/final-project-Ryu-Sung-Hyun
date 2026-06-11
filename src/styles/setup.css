@@ -67,11 +67,28 @@
 
 .size-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: end;
 }
 .size-row input {
   width: 100%;
+}
+
+/* 플립 버튼: 입력란과 같은 높이(36px), 둥근 사각형 */
+.flip-btn-wrap {
+  display: flex;
+  align-items: flex-end;
+}
+.flip-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .setup-start {
