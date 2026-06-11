@@ -11,6 +11,16 @@ const PenIcon    = () => <Icon><path d="M11 2l3 3-8 8H3v-3L11 2z"/></Icon>
 const EraserIcon = () => <Icon><path d="M12 3L3 12l2 2 9-9-2-2zM1 15h14"/></Icon>
 const EyedropIcon= () => <Icon><path d="M10 2l4 4-7 7-2-1-3 3H1v-2l3-3-1-2 7-7z"/></Icon>
 
+// 버킷: 바깥 통 윤곽 + 물방울 모양
+const FillIcon = () => (
+  <Icon>
+    <path d="M2 11L7 2l5 9a4 4 0 01-5 2 4 4 0 01-2-2z"/>
+    <path d="M13 10c0 1.1.9 2 2 2"/>
+    <path d="M13 10c0-1.1.9-2 2-2"/>
+    <path d="M15 8v4"/>
+  </Icon>
+)
+
 // 이동: 화살표 머리 크기 50% 축소
 const MoveIcon   = () => (
   <Icon>
@@ -104,6 +114,7 @@ export default function Toolbar({
         <button className={tool === 'pen'        ? 'active' : ''} onClick={() => setTool('pen')}        title="펜 — 선택 중 다시 클릭하면 크기 조절"><PenIcon /> 펜</button>
         <button className={tool === 'eraser'     ? 'active' : ''} onClick={() => setTool('eraser')}     onContextMenu={onEraserSize} title="지우개 — 선택 중 다시 클릭하면 모두 지우기 / 우클릭하면 크기 조절"><EraserIcon /> 지우개</button>
         <button className={tool === 'eyedropper' ? 'active' : ''} onClick={() => setTool('eyedropper')} title="스포이드"><EyedropIcon /> 스포이드</button>
+        <button className={tool === 'fill'       ? 'active' : ''} onClick={() => setTool('fill')}       title="버킷 채우기 — 닫힌 영역을 현재 색으로 채움"><FillIcon /> 채우기</button>
         <button className={tool === 'grab'       ? 'active' : ''} onClick={() => setTool('grab')}       title="이동 — 캔버스를 드래그로 이동"><MoveIcon /> 이동</button>
       </div>
 

@@ -2,13 +2,16 @@ import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 're
 
 function CanvasBoardInner({ pixels, width, height, tool, onPaint, onPickColor, bgImage }, ref) {
   const canvasRef = useRef(null)
-  const offscreenRef = useRef(null) // 오프스크린 캔버스 (픽셀만)
+  const offscreenRef = useRef(null)
   const [scale, setScale] = useState(16)
   const [drag, setDrag] = useState(false)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const grabStart = useRef(null)
-  const bgImgCache = useRef(null) // 로드된 배경 이미지 캐시
-  const bgImgSrc = useRef(null)   // 현재 캐시된 src
+  const bgImgCache = useRef(null)
+  const bgImgSrc = useRef(null)
+
+  // devicePixelRatio: Retina 등 고밀도 디스플레이 대응
+  const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1
 
   useImperativeHandle(ref, () => canvasRef.current)
 
@@ -19,100 +22,104 @@ function CanvasBoardInner({ pixels, width, height, tool, onPaint, onPickColor, b
     return { x, y }
   }
 
-  // 픽셀 레이어만 오프스크린에 렌더 (배경 없이)
-  const renderPixelLayer = (ctx, w, h) => {
-    ctx.clearRect(0, 0, w, h)
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const color = pixels[y]?.[x]
+  // 픽셀 레이어 오프스크린 렌더 (DPR 반영)
+  const renderPixelLayer = (ctx, cw, ch) => {
+    ctx.clearRect(0, 0, cw, ch)
+    ctx.save()
+    ctx.scale(dpr, dpr)
+    for (let row = 0; row < height; row++) {
+      for (let col = 0; col < width; col++) {
+        const color = pixels[row]?.[col]
         if (color) {
           ctx.fillStyle = color
-          ctx.fillRect(x * scale, y * scale, scale, scale)
+          ctx.fillRect(col * scale, row * scale, scale, scale)
         }
-        ctx.strokeStyle = 'rgba(180,180,180,0.4)'
-        ctx.strokeRect(x * scale, y * scale, scale, scale)
+        // 그리드선: scale이 작으면 생략해 흐림 방지
+        if (scale >= 6) {
+          ctx.strokeStyle = 'rgba(150,150,150,0.3)'
+          ctx.lineWidth = 0.5
+          ctx.strokeRect(col * scale, row * scale, scale, scale)
+        }
       }
     }
+    ctx.restore()
   }
 
-  // 최종 합성 (배경 + 픽셀)
   const compositeToMain = (mainCtx, cw, ch, imgEl) => {
     mainCtx.clearRect(0, 0, cw, ch)
-
+    mainCtx.save()
+    mainCtx.scale(dpr, dpr)
+    // 흰 배경
+    mainCtx.fillStyle = '#ffffff'
+    mainCtx.fillRect(0, 0, width * scale, height * scale)
     if (imgEl) {
-      // 배경 이미지 있을 때: 흰 바탕 → 반투명 배경 이미지 → 픽셀
-      mainCtx.fillStyle = '#ffffff'
-      mainCtx.fillRect(0, 0, cw, ch)
       mainCtx.globalAlpha = 0.35
-      mainCtx.drawImage(imgEl, 0, 0, cw, ch)
+      mainCtx.drawImage(imgEl, 0, 0, width * scale, height * scale)
       mainCtx.globalAlpha = 1
-    } else {
-      // 배경 이미지 없을 때: 흰 바탕
-      mainCtx.fillStyle = '#ffffff'
-      mainCtx.fillRect(0, 0, cw, ch)
     }
-
-    // 오프스크린 픽셀 레이어 합성
+    mainCtx.restore()
+    // 오프스크린 픽셀 레이어 합성 (이미 DPR 반영됨)
     if (offscreenRef.current) {
       mainCtx.drawImage(offscreenRef.current, 0, 0)
     }
   }
 
-  // 픽셀 변경 시: 오프스크린 업데이트 → 메인 합성
   useEffect(() => {
     const c = canvasRef.current
     if (!c) return
-    const cw = width * scale
-    const ch = height * scale
-    c.width = cw
-    c.height = ch
 
-    // 오프스크린 캔버스 초기화/리사이즈
-    if (!offscreenRef.current) {
-      offscreenRef.current = document.createElement('canvas')
-    }
-    offscreenRef.current.width = cw
-    offscreenRef.current.height = ch
+    // CSS 표시 크기
+    const cssW = width * scale
+    const cssH = height * scale
+
+    // 실제 버퍼 크기 = CSS 크기 × DPR → 선명하게
+    c.width  = Math.round(cssW * dpr)
+    c.height = Math.round(cssH * dpr)
+    c.style.width  = `${cssW}px`
+    c.style.height = `${cssH}px`
+
+    // 오프스크린도 동일 크기
+    if (!offscreenRef.current) offscreenRef.current = document.createElement('canvas')
+    offscreenRef.current.width  = c.width
+    offscreenRef.current.height = c.height
     const offCtx = offscreenRef.current.getContext('2d')
-    renderPixelLayer(offCtx, cw, ch)
+    renderPixelLayer(offCtx, c.width, c.height)
 
     const mainCtx = c.getContext('2d')
 
     if (bgImage) {
       if (bgImgSrc.current === bgImage && bgImgCache.current) {
-        // 이미 캐시된 이미지 재사용
-        compositeToMain(mainCtx, cw, ch, bgImgCache.current)
+        compositeToMain(mainCtx, c.width, c.height, bgImgCache.current)
       } else {
-        // 새로운 배경 이미지 로드
         const img = new Image()
         img.onload = () => {
           bgImgCache.current = img
           bgImgSrc.current = bgImage
-          compositeToMain(mainCtx, cw, ch, img)
+          compositeToMain(mainCtx, c.width, c.height, img)
         }
         img.src = bgImage
       }
     } else {
       bgImgCache.current = null
       bgImgSrc.current = null
-      compositeToMain(mainCtx, cw, ch, null)
+      compositeToMain(mainCtx, c.width, c.height, null)
     }
-  }, [pixels, width, height, scale, bgImage])
+  }, [pixels, width, height, scale, bgImage, dpr])
 
   const cursorMap = {
     pen: 'crosshair',
     eraser: 'cell',
     eyedropper: 'crosshair',
     grab: drag ? 'grabbing' : 'grab',
+    fill: 'cell',
   }
 
-  // ── 한 칸 꾹 누름 시 여러 번 칠 방지 ──
-  const lastPainted = useRef(null) // { x, y } 마지막으로 칠한 셀
+  const lastPainted = useRef(null)
   const isPainting = useRef(false)
 
   const tryPaint = (x, y) => {
     const key = `${x},${y}`
-    if (lastPainted.current === key) return // 같은 칸 중복 칠 방지
+    if (lastPainted.current === key) return
     lastPainted.current = key
     onPaint(x, y)
   }
@@ -126,7 +133,7 @@ function CanvasBoardInner({ pixels, width, height, tool, onPaint, onPickColor, b
     const { x, y } = getCell(e)
     setDrag(true)
     isPainting.current = true
-    lastPainted.current = null // 새 드래그 시작 시 초기화
+    lastPainted.current = null
     if (tool === 'eyedropper') {
       onPickColor(x, y)
     } else {
@@ -153,7 +160,6 @@ function CanvasBoardInner({ pixels, width, height, tool, onPaint, onPickColor, b
     lastPainted.current = null
   }
 
-  // ── 스크롤 고정: wheel 이벤트를 passive:false로 등록 ──
   useEffect(() => {
     const c = canvasRef.current
     if (!c) return
@@ -174,11 +180,7 @@ function CanvasBoardInner({ pixels, width, height, tool, onPaint, onPickColor, b
         <canvas
           ref={canvasRef}
           className="pixel-canvas"
-          style={{
-            width: width * scale,
-            height: height * scale,
-            cursor: cursorMap[tool] || 'crosshair',
-          }}
+          style={{ cursor: cursorMap[tool] || 'crosshair' }}
           onContextMenu={(e) => e.preventDefault()}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
