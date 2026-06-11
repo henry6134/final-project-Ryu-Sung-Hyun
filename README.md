@@ -57,6 +57,8 @@
       <br/><sub><b>색 선택 팝업</b><br/>기본색 · 히스토리 · SV 필드 · HSV 슬라이더</sub>
     </td>
   </tr>
+</table>
+<table>
   <tr>
     <td align="center">
       <img src="./pixel.png" width="576" height="360">      
