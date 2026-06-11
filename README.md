@@ -19,7 +19,7 @@
 <br/>
 
 **접속 화면**
-<img src="./wideScreen.png" width="2880" height="1800">
+<img src="./wideScreen.png" width="576" height="360">
 
 </div>
 
