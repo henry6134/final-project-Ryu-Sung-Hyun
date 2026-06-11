@@ -61,7 +61,7 @@
 <table>
   <tr>
     <td align="center">
-      <img src="./pixel.png" width="576" height="360">      
+      <img src="./pixel.png" width="3840" height="2537">      
       <br/><sub><b>내보내기</b><br/>PNG · JPG · JSON</sub>
     </td>
   </tr>
