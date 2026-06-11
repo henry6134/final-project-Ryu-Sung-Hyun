@@ -19,7 +19,7 @@
 <br/>
 
 **접속 화면**
-<img src="./wideScreen.png" width="576" height="360">
+<img src="./wideScreen.png" width="2880" height="1800">
 
 </div>
 
@@ -41,7 +41,12 @@
     <td align="center">
       <img src="./setUp.png" width="576" height="360">
       <img src="./ratioSet.png" width="576" height="360">
-      <br/><sub><b>초기 화면</b><br/>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</sub>
+      <br/><sub><b>초기 화면</b></sub>
+    </td>
+    <td align="center">
+      <img src="./setUp.png" width="576" height="360">
+      <img src="./ratioSet.png" width="576" height="360">
+      <br/><sub><br/>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</sub>
     </td>
     <td align="center">
       <img src="./editorScreen.png" width="576" height="360">
