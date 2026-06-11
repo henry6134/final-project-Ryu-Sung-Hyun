@@ -1,0 +1,183 @@
+/* editor.css */
+
+/* ── Editor outer shell ── */
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Toolbar (OS menubar style) ── */
+.toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  height: 52px;
+  position: relative;
+  z-index: 100;
+}
+
+.toolbar .tool-group {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.toolbar .toolbar-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 6px;
+}
+
+.toolbar button {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.toolbar .tool-icon-btn {
+  width: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.toolbar .spacer {
+  flex: 1;
+}
+
+/* ── Canvas stage (center canvas) ── */
+.editor-stage {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+}
+
+.canvas-wrap {
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 1px var(--border-strong),
+    0 8px 32px rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+
+/* ── Footer ── */
+.editor-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+  background: var(--toolbar-bg);
+}
+
+.editor-footer .canvas-info {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* ── Color swatch in toolbar ── */
+.color-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 2px solid var(--border-strong);
+  flex-shrink: 0;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ── Color panel inside modal ── */
+.color-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.color-swatches {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+}
+.color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+.color-swatch:hover { transform: scale(1.15); border-color: var(--border-strong); }
+.color-swatch.selected { border-color: var(--accent); }
+
+.color-inputs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.color-inputs input[type="text"] {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.color-inputs input[type="color"] {
+  width: 36px;
+  height: 36px;
+  padding: 2px;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+
+/* ── Size popup ── */
+.size-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.size-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.size-controls input[type="number"] {
+  width: 80px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 18px;
+}
+.size-step-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.size-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  background: var(--bg-sunken);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}

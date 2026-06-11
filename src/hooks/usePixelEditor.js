@@ -7,7 +7,7 @@ export function usePixelEditor(width, height) {
   const { present: pixels, set, undo, redo, canUndo, canRedo } = useHistory(blank)
 
   const [tool, setTool] = useState('pen')
-  const [color, setColor] = useState('#ff0000')
+  const [color, setColor] = useState('#2563eb')
   const [penSize, setPenSize] = useState(1)
   const [eraserSize, setEraserSize] = useState(1)
 
@@ -23,15 +23,21 @@ export function usePixelEditor(width, height) {
     set(next)
   }
 
-  const paint = (x, y) => applySquare(x, y, tool === 'pen' ? penSize : eraserSize, tool === 'pen' ? color : null)
+  const paint = (x, y) =>
+    applySquare(x, y, tool === 'pen' ? penSize : eraserSize, tool === 'pen' ? color : null)
+
   const getColorAt = (x, y) => pixels[y]?.[x] ?? null
-  const fromJSON = (obj) => { if (obj?.pixels) set(obj.pixels) }
+
+  const fromJSON = (obj) => {
+    if (obj?.pixels) set(obj.pixels)
+  }
+
   const clearAll = () => set(makeBlank())
 
   return {
     pixels, tool, color, penSize, eraserSize,
     setTool, setColor, setPenSize, setEraserSize,
     paint, getColorAt, fromJSON, clearAll,
-    undo, redo, canUndo, canRedo
+    undo, redo, canUndo, canRedo,
   }
 }

@@ -6,12 +6,12 @@ import SizePopup from './SizePopup'
 import ExportPopup from './ExportPopup'
 import ImportPopup from './ImportPopup'
 import ConfirmPopup from './ConfirmPopup'
+import ThemeToggle from './ThemeToggle'
 import { usePixelEditor } from '../hooks/usePixelEditor'
 import { downloadCanvasPNG, downloadText } from '../utils/exportFile'
 import { openFile, readTextFile, readFileAsDataURL } from '../utils/importFile'
-import ThemeToggle from './ThemeToggle'
 
-export default function EditorScreen({ config, setConfig, onBack }) {
+export default function EditorScreen({ config, setConfig, onBack, onToggleTheme }) {
   const editor = usePixelEditor(config.width, config.height)
   const canvasRef = useRef(null)
 
@@ -19,19 +19,17 @@ export default function EditorScreen({ config, setConfig, onBack }) {
   const [showExport, setShowExport] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [showClear, setShowClear] = useState(false)
-  const [sizeMode, setSizeMode] = useState(null)
+  const [sizeMode, setSizeMode] = useState(null)    // 'pen' | 'eraser' | null
   const [showSettings, setShowSettings] = useState(false)
 
-  const exportJSON = () => downloadText('pixel-art.json', JSON.stringify({ width: config.width, height: config.height, pixels: editor.pixels }, null, 2))
+  // ── Export ──────────────────────────────────────
+  const exportJSON = () =>
+    downloadText(
+      'pixel-art.json',
+      JSON.stringify({ width: config.width, height: config.height, pixels: editor.pixels }, null, 2)
+    )
 
-  const importJSON = async () => {
-    const file = await openFile('.json,.png')
-    if (!file) return
-    if (file.type.includes('png')) return importPNG(file)
-    const text = await readTextFile(file)
-    editor.fromJSON(JSON.parse(text))
-  }
-
+  // ── Import ──────────────────────────────────────
   const importPNG = async (fileArg) => {
     const file = fileArg || (await openFile('.png'))
     if (!file) return
@@ -56,20 +54,33 @@ export default function EditorScreen({ config, setConfig, onBack }) {
     img.src = dataUrl
   }
 
+  const importJSON = async () => {
+    const file = await openFile('.json,.png')
+    if (!file) return
+    if (file.type.includes('png')) return importPNG(file)
+    const text = await readTextFile(file)
+    editor.fromJSON(JSON.parse(text))
+  }
+
   const openImport = async (kind) => {
     setShowImport(false)
     if (kind === 'json') await importJSON()
     else await importPNG()
   }
 
+  // ── Tool click: second click = size popup (pen) / clear popup (eraser) ──
   const handleToolClick = (nextTool) => {
     if (editor.tool === nextTool) {
-      if (nextTool === 'pen') setSizeMode('pen')
-      if (nextTool === 'eraser') setSizeMode('eraser')
-      if (nextTool === 'eraser') setShowClear(true)
-      return
+      if (nextTool === 'pen')    { setSizeMode('pen');    return }
+      if (nextTool === 'eraser') { setShowClear(true);    return }
     }
     editor.setTool(nextTool)
+  }
+
+  // Long-press on eraser → eraser size (right-click fallback)
+  const handleEraserContextMenu = (e) => {
+    e.preventDefault()
+    setSizeMode('eraser')
   }
 
   const doClear = () => {
@@ -79,14 +90,12 @@ export default function EditorScreen({ config, setConfig, onBack }) {
 
   return (
     <div className={`page theme-${config.theme} editor-page`}>
-      <ThemeToggle
-        theme={config.theme}
-        onToggle={() => setConfig((c) => ({ ...c, theme: c.theme === 'light' ? 'dark' : 'light' }))}
-      />
+      <ThemeToggle theme={config.theme} onToggle={onToggleTheme} />
 
       <Toolbar
         tool={editor.tool}
         setTool={handleToolClick}
+        color={editor.color}
         onOpenColor={() => setShowColor(true)}
         onOpenExport={() => setShowExport(true)}
         onOpenImport={() => setShowImport(true)}
@@ -94,39 +103,47 @@ export default function EditorScreen({ config, setConfig, onBack }) {
         onRedo={editor.redo}
         canUndo={editor.canUndo}
         canRedo={editor.canRedo}
-        onOpenSize={() => setSizeMode(editor.tool === 'eraser' ? 'eraser' : 'pen')}
-        onOpenClear={() => setShowClear(true)}
         onOpenSettings={() => setShowSettings(true)}
+        onEraserSize={handleEraserContextMenu}
       />
 
+      {/* Canvas — always centered */}
       <div className="editor-stage">
-        <div className="canvas-center">
-          <CanvasBoard
-            ref={canvasRef}
-            pixels={editor.pixels}
-            width={config.width}
-            height={config.height}
-            tool={editor.tool}
-            onPaint={editor.paint}
-            onPickColor={(x, y) => editor.setColor(editor.getColorAt(x, y) || '#000000')}
-          />
-        </div>
+        <CanvasBoard
+          ref={canvasRef}
+          pixels={editor.pixels}
+          width={config.width}
+          height={config.height}
+          tool={editor.tool}
+          onPaint={editor.paint}
+          onPickColor={(x, y) => {
+            editor.setColor(editor.getColorAt(x, y) || '#000000')
+            editor.setTool('pen')
+          }}
+        />
       </div>
 
       <div className="editor-footer">
-        <button onClick={onBack}>뒤로</button>
+        <button onClick={onBack}>← 뒤로</button>
+        <span className="canvas-info">
+          {config.width} × {config.height} px
+        </span>
       </div>
 
+      {/* ── Color popup ── */}
       {showColor && (
         <div className="modal-backdrop" onMouseDown={() => setShowColor(false)}>
-          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="color-title" onMouseDown={(e) => e.stopPropagation()}>
-            <h3 id="color-title">색 선택</h3>
+          <div className="modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
+            <h3>색 선택</h3>
             <ColorPanel color={editor.color} setColor={editor.setColor} />
-            <button onClick={() => setShowColor(false)}>닫기</button>
+            <div className="modal-actions">
+              <button className="primary" onClick={() => setShowColor(false)}>확인</button>
+            </div>
           </div>
         </div>
       )}
 
+      {/* ── Export popup ── */}
       {showExport && (
         <ExportPopup
           onPNG={() => { downloadCanvasPNG(canvasRef.current); setShowExport(false) }}
@@ -135,6 +152,7 @@ export default function EditorScreen({ config, setConfig, onBack }) {
         />
       )}
 
+      {/* ── Import popup ── */}
       {showImport && (
         <ImportPopup
           onImport={openImport}
@@ -142,15 +160,19 @@ export default function EditorScreen({ config, setConfig, onBack }) {
         />
       )}
 
+      {/* ── Clear confirm ── */}
       {showClear && (
         <ConfirmPopup
           title="모두 지우기"
-          message="모든 픽셀을 지울까요?"
+          message="모든 픽셀을 지울까요? 이 작업은 되돌릴 수 없습니다."
+          confirmLabel="모두 지우기"
+          confirmClass="danger"
           onConfirm={doClear}
           onClose={() => setShowClear(false)}
         />
       )}
 
+      {/* ── Pen size popup ── */}
       {sizeMode === 'pen' && (
         <SizePopup
           title="펜 크기"
@@ -160,6 +182,7 @@ export default function EditorScreen({ config, setConfig, onBack }) {
         />
       )}
 
+      {/* ── Eraser size popup ── (accessible via long-press or separate flow) */}
       {sizeMode === 'eraser' && (
         <SizePopup
           title="지우개 크기"
@@ -169,10 +192,12 @@ export default function EditorScreen({ config, setConfig, onBack }) {
         />
       )}
 
+      {/* ── Settings ── */}
       {showSettings && (
         <ConfirmPopup
-          title="설정"
-          message="설정 화면으로 이동할까요?"
+          title="설정으로 이동"
+          message="초기 화면으로 돌아갑니다. 저장하지 않은 작업은 사라집니다."
+          confirmLabel="이동"
           onConfirm={() => { setShowSettings(false); onBack() }}
           onClose={() => setShowSettings(false)}
         />

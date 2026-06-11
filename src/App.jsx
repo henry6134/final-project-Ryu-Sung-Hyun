@@ -12,9 +12,22 @@ export default function App() {
     localStorage.setItem('pixel-theme', config.theme)
   }, [config.theme])
 
+  const toggleTheme = () =>
+    setConfig((c) => ({ ...c, theme: c.theme === 'light' ? 'dark' : 'light' }))
+
   return view === 'setup' ? (
-    <SetupScreen config={config} setConfig={setConfig} onStart={() => setView('editor')} />
+    <SetupScreen
+      config={config}
+      setConfig={setConfig}
+      onStart={() => setView('editor')}
+      onToggleTheme={toggleTheme}
+    />
   ) : (
-    <EditorScreen config={config} setConfig={setConfig} onBack={() => setView('setup')} />
+    <EditorScreen
+      config={config}
+      setConfig={setConfig}
+      onBack={() => setView('setup')}
+      onToggleTheme={toggleTheme}
+    />
   )
 }

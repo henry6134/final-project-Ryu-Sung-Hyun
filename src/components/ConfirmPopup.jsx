@@ -1,11 +1,13 @@
-export default function ConfirmPopup({ title, message, onConfirm, onClose }) {
+export default function ConfirmPopup({ title, message, onConfirm, onClose, confirmLabel = '확인', confirmClass = '' }) {
   return (
     <div className="modal-backdrop" onMouseDown={onClose}>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title" onMouseDown={(e) => e.stopPropagation()}>
-        <h3 id="confirm-title">{title}</h3>
-        <p>{message}</p>
-        <button onClick={onConfirm}>확인</button>
-        <button onClick={onClose}>취소</button>
+      <div className="modal" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
+        <h3>{title}</h3>
+        {message && <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>{message}</p>}
+        <div className="modal-actions">
+          <button onClick={onClose}>취소</button>
+          <button className={confirmClass || 'primary'} onClick={onConfirm}>{confirmLabel}</button>
+        </div>
       </div>
     </div>
   )
