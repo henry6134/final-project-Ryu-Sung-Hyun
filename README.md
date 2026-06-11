@@ -46,18 +46,20 @@
       <img src="./ratioSet.png" width="576" height="360">
       <br/><sub><b>초기 화면 설정</b>b><br/>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center">
       <img src="./editorScreen.png" width="576" height="360">
       <br/><sub><b>에디터 화면</b><br/>툴바 · 캔버스 · 라이트/다크 모드</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center">
       <img src="./colorSelect.png" width="576" height="360">
       <br/><sub><b>색 선택 팝업</b><br/>기본색 · 히스토리 · SV 필드 · HSV 슬라이더</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center">
-      <img src="./pixel.png" width="576" height="360">      
+      <img src="./pixel.png" width="3840" height="2537">      
       <br/><sub><b>내보내기</b><br/>PNG · JPG · JSON</sub>
     </td>
   </tr>
