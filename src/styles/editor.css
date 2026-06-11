@@ -205,3 +205,113 @@
   border-radius: 8px;
   border: 1px solid var(--border);
 }
+
+/* ── 테마 토글 슬라이더 (에디터 + 셋업 공용) ── */
+.theme-toggle-editor {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 36px;
+  border-radius: 8px;
+}
+.theme-toggle-editor:hover {
+  background: var(--btn-hover);
+}
+
+.toggle-track {
+  display: flex;
+  align-items: center;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.22s;
+  border: 1px solid var(--border-strong);
+}
+.toggle-track.light {
+  background: #e0e9ff;
+  justify-content: flex-start;
+}
+.toggle-track.dark {
+  background: #1e2130;
+  justify-content: flex-end;
+}
+
+.toggle-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin: 1px;
+  transition: margin 0.22s;
+}
+.toggle-track.dark .toggle-thumb {
+  background: #2d3147;
+  color: #8b9cf4;
+}
+.toggle-track.light .toggle-thumb {
+  color: #f59e0b;
+}
+
+/* ── ColorPanel 하단 대칭 레이아웃 ── */
+.cp-bottom-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cp-preview-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.cp-preview {
+  width: 32px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  flex-shrink: 0;
+}
+.cp-preview-old {
+  opacity: 0.5;
+  border-style: dashed;
+}
+.cp-preview-new {
+  /* 현재 색: 진하게 */
+}
+.cp-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+/* 전체 채우기 버튼 */
+.cp-fill-btn {
+  width: 100%;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 7px;
+  border-radius: 7px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+}
+.cp-fill-btn:hover:not(:disabled) {
+  opacity: 0.85;
+  background: var(--accent-bg);
+}

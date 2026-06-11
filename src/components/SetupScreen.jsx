@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { PRESETS } from '../constants/presets'
 import { fitByRatio } from '../utils/ratio'
-import ThemeToggle from './ThemeToggle'
 
 function RatioPreview({ width, height }) {
   const maxW = 100
@@ -24,11 +23,9 @@ function RatioPreview({ width, height }) {
 }
 
 // 숫자 입력 — 빈 값 허용, blur 시 0으로 fallback
-function NumberInput({ label, value, onChange }) {
+function NumberInput({ label, value, onChange, disabled }) {
   const [raw, setRaw] = useState(String(value))
 
-  // 부모 value가 바뀌면 raw 동기화 (단, 포커스 중엔 무시)
-  // → 간단하게 controlled 방식으로 처리
   const handleChange = (e) => {
     const v = e.target.value
     setRaw(v)
@@ -47,13 +44,6 @@ function NumberInput({ label, value, onChange }) {
     }
   }
 
-  // 부모에서 value가 바뀌면 raw도 맞춰줌 (플립 등)
-  // useEffect 없이 render마다 비교
-  const strVal = String(value)
-  if (raw !== strVal && document.activeElement?.dataset?.field !== label) {
-    // 포커스 아닌 경우에만 덮어쓰기
-  }
-
   return (
     <div className="field">
       <span>{label}</span>
@@ -62,21 +52,19 @@ function NumberInput({ label, value, onChange }) {
         inputMode="numeric"
         pattern="[0-9]*"
         data-field={label}
-        value={raw}
+        value={disabled ? String(value) : raw}
         onChange={handleChange}
-        onFocus={(e) => {
-          // 포커스 시 0이면 전체 선택
-          if (raw === '0') e.target.select()
-        }}
+        onFocus={(e) => { if (raw === '0') e.target.select() }}
         onBlur={handleBlur}
-        style={{ width: '100%' }}
+        disabled={disabled}
+        style={{ width: '100%', opacity: disabled ? 0.45 : 1 }}
       />
     </div>
   )
 }
 
 // flip-aware NumberInput wrapper
-function SizeInput({ label, valueKey, config, setConfig, preset }) {
+function SizeInput({ label, valueKey, config, setConfig, preset, disabled }) {
   const value = config[valueKey]
 
   const handleChange = (n) => {
@@ -84,7 +72,7 @@ function SizeInput({ label, valueKey, config, setConfig, preset }) {
     setConfig((c) => ({ ...c, ...next }))
   }
 
-  return <NumberInput label={label} value={value} onChange={handleChange} />
+  return <NumberInput label={label} value={value} onChange={handleChange} disabled={disabled} />
 }
 
 // 플립 버튼 SVG
@@ -96,14 +84,56 @@ const FlipIcon = () => (
   </svg>
 )
 
+// 에디터와 동일한 스타일의 테마 토글 (썬/문 트랙 슬라이더)
+function ThemeToggleSetup({ theme, onToggle }) {
+  const isDark = theme === 'dark'
+  return (
+    <button
+      className="theme-toggle-editor"
+      onClick={onToggle}
+      title={isDark ? '라이트 모드' : '다크 모드'}
+      aria-label="테마 전환"
+      style={{ position: 'fixed', top: 14, right: 16, zIndex: 300 }}
+    >
+      <span className={`toggle-track ${isDark ? 'dark' : 'light'}`}>
+        <span className="toggle-thumb">
+          {isDark
+            ? (
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none"
+                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M12 3a6 6 0 01-9 9 6 6 0 009-9z"/>
+              </svg>
+            ) : (
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none"
+                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="8" cy="8" r="3"/>
+                <line x1="8" y1="1" x2="8" y2="3"/>
+                <line x1="8" y1="13" x2="8" y2="15"/>
+                <line x1="1" y1="8" x2="3" y2="8"/>
+                <line x1="13" y1="8" x2="15" y2="8"/>
+                <line x1="3.05" y1="3.05" x2="4.5" y2="4.5"/>
+                <line x1="11.5" y1="11.5" x2="12.95" y2="12.95"/>
+                <line x1="3.05" y1="12.95" x2="4.5" y2="11.5"/>
+                <line x1="11.5" y1="4.5" x2="12.95" y2="3.05"/>
+              </svg>
+            )
+          }
+        </span>
+      </span>
+    </button>
+  )
+}
+
 export default function SetupScreen({ config, setConfig, onStart, onToggleTheme }) {
   const [presetIndex, setPresetIndex] = useState(7)
   const preset = PRESETS[presetIndex]
+  const isCustom = preset.custom === true
 
   const handlePresetChange = (idx) => {
     setPresetIndex(idx)
     const p = PRESETS[idx]
     if (!p.custom) {
+      // 가로 기준 세로 자동 계산
       const ratio = p.width / p.height
       const newH = Math.max(1, Math.round(config.width / ratio))
       setConfig((c) => ({ ...c, height: newH }))
@@ -116,7 +146,7 @@ export default function SetupScreen({ config, setConfig, onStart, onToggleTheme 
 
   return (
     <div className={`page theme-${config.theme} setup-page`}>
-      <ThemeToggle theme={config.theme} onToggle={onToggleTheme} />
+      <ThemeToggleSetup theme={config.theme} onToggle={onToggleTheme} />
 
       <div className="setup-card">
         <div>
@@ -143,17 +173,39 @@ export default function SetupScreen({ config, setConfig, onStart, onToggleTheme 
         <RatioPreview width={config.width} height={config.height} />
 
         <div className="size-row">
-          <SizeInput label="가로 (px)" valueKey="width"  config={config} setConfig={setConfig} preset={preset} />
+          {/* 가로: 항상 편집 가능 */}
+          <SizeInput
+            label="가로 (px)"
+            valueKey="width"
+            config={config}
+            setConfig={setConfig}
+            preset={preset}
+            disabled={false}
+          />
 
-          {/* 플립 버튼: 입력란과 같은 높이, 둥근 사각형 */}
+          {/* 플립 버튼 */}
           <div className="flip-btn-wrap">
             <button className="flip-btn" onClick={flipOrientation} title="가로 ↔ 세로 전환">
               <FlipIcon />
             </button>
           </div>
 
-          <SizeInput label="세로 (px)" valueKey="height" config={config} setConfig={setConfig} preset={preset} />
+          {/* 세로: 사용자 지정일 때만 편집 가능 */}
+          <SizeInput
+            label="세로 (px)"
+            valueKey="height"
+            config={config}
+            setConfig={setConfig}
+            preset={preset}
+            disabled={!isCustom}
+          />
         </div>
+
+        {!isCustom && (
+          <p style={{ margin: '-8px 0 0', fontSize: 11, color: 'var(--text-muted)' }}>
+            세로는 비율 프리셋에 따라 자동 계산됩니다
+          </p>
+        )}
 
         <button className="primary setup-start" onClick={onStart}>
           시작하기 →

@@ -39,22 +39,29 @@
 <table>
   <tr>
     <td align="center">
-      <img src="./setUp.png" width="576" height="360">
-      <img src="./ratioSet.png" width="576" height="360">
-      <br/><sub><b>초기 화면</b><br/>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</sub>
+      <img src="./setUp.png" width="576" height="360">      
+      <br/><sub><b>초기 화면</b><br/>접속 시, 가장 처음 보는 화면</sub>
     </td>
-    <td align="center">
-      <img src="./editorScreen.png" width="576" height="360">
-      <br/><sub><b>에디터 화면</b><br/>툴바 · 캔버스 · 라이트/다크 모드</sub>
+    <td align="center">      
+      <img src="./ratioSet.png" width="576" height="360">
+      <br/><sub><b>초기 화면 설정</b>b><br/>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</sub>
     </td>
   </tr>
   <tr>
     <td align="center">
+      <img src="./editorScreen.png" width="576" height="360">
+      <br/><sub><b>에디터 화면</b><br/>툴바 · 캔버스 · 라이트/다크 모드</sub>
+    </td>
+    <td align="center">
       <img src="./colorSelect.png" width="576" height="360">
       <br/><sub><b>색 선택 팝업</b><br/>기본색 · 히스토리 · SV 필드 · HSV 슬라이더</sub>
     </td>
+  </tr>
+</table>
+<table>
+  <tr>
     <td align="center">
-      <img src="./pixel.png" width="576" height="360">      
+      <img src="./pixel.png" width="3840" height="2537">      
       <br/><sub><b>내보내기</b><br/>PNG · JPG · JSON</sub>
     </td>
   </tr>
@@ -113,7 +120,7 @@ git push origin main
 이 프로젝트는 AI를 활용해 초기 기능 정리, 파일 구조 설계, 코드 뼈대 작성, UI 수정안 보완에 도움을 받았습니다.
 최종 코드는 요구사항에 맞게 직접 수정하고 검토했습니다.
 
-AI LOG 링크: [AI 사용 기록 바로가기](./AI_Log.md)
+AI LOG 링크: [AI 사용 기록 바로가기](./AI_log.md)
 
 ---
 

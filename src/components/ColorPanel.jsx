@@ -150,7 +150,7 @@ function GradientSlider({ label, value, onChange, makeGradient, textValue }) {
 }
 
 // ── 메인 ColorPanel ───────────────────────────────────────
-export default function ColorPanel({ color, setColor, history, setHistory }) {
+export default function ColorPanel({ color, setColor, history, setHistory, onFill }) {
   // 현재 색을 HSV로 관리
   const initHsv = hexToHsv(color.startsWith('#') && color.length === 7 ? color : '#ff0000')
   const [hsv, setHsv] = useState(initHsv)
@@ -172,21 +172,11 @@ export default function ColorPanel({ color, setColor, history, setHistory }) {
     }
   }, [color])
 
-  // 현재 색을 히스토리에 기록 (팝업 닫을 때가 아닌, 색 확정 시점)
-  const addToHistory = useCallback((hex) => {
-    setHistory((prev) => {
-      if (prev[0] === hex) return prev
-      const next = [hex, ...prev.filter(c => c !== hex)].slice(0, MAX_HISTORY)
-      return next
-    })
-  }, [setHistory])
-
   // hex 입력란 직접 수정
   const handleHexInput = (val) => {
     setColor(val)
     if (val.startsWith('#') && val.length === 7) {
       setHsv(hexToHsv(val))
-      addToHistory(val)
     }
   }
 
@@ -194,18 +184,15 @@ export default function ColorPanel({ color, setColor, history, setHistory }) {
   const currentHex = hsvToHex(h, s, v)
   const { r, g, b } = hsvToRgb(h, s, v)
 
-  // 색상 슬라이더 그라디언트 (순수 색상환)
   const hueGradient = () =>
     'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)'
 
-  // 채도 슬라이더: 현재 h,v 기준으로 회색→색
   const satGradient = () => {
     const col = hsvToHex(h, 1, v)
     const gray = hsvToHex(h, 0, v)
     return `linear-gradient(to right, ${gray}, ${col})`
   }
 
-  // 명도 슬라이더: 검정→현재 색조
   const valGradient = () => {
     const col = hsvToHex(h, s, 1)
     return `linear-gradient(to right, #000, ${col})`
@@ -222,14 +209,14 @@ export default function ColorPanel({ color, setColor, history, setHistory }) {
               key={c}
               className={`cp-swatch${color === c ? ' selected' : ''}`}
               style={{ background: c }}
-              onClick={() => { setColor(c); setHsv(hexToHsv(c)); addToHistory(c) }}
+              onClick={() => { setColor(c); setHsv(hexToHsv(c)) }}
               title={c}
             />
           ))}
         </div>
       </div>
 
-      {/* 2. 히스토리 */}
+      {/* 2. 히스토리 — 실제 용지에 칠해진 색만 표시 */}
       {history.length > 0 && (
         <div className="cp-section">
           <div className="cp-label">최근 사용</div>
@@ -239,7 +226,7 @@ export default function ColorPanel({ color, setColor, history, setHistory }) {
                 key={i}
                 className={`cp-swatch${color === c ? ' selected' : ''}`}
                 style={{ background: c }}
-                onClick={() => { setColor(c); setHsv(hexToHsv(c)); }}
+                onClick={() => { setColor(c); setHsv(hexToHsv(c)) }}
                 title={c}
               />
             ))}
@@ -251,7 +238,7 @@ export default function ColorPanel({ color, setColor, history, setHistory }) {
       <div className="cp-section">
         <SvField
           hue={h} s={s} v={v}
-          onChange={(ns, nv) => { applyHsv(h, ns, nv); addToHistory(hsvToHex(h, ns, nv)) }}
+          onChange={(ns, nv) => applyHsv(h, ns, nv)}
         />
       </div>
 
@@ -260,41 +247,83 @@ export default function ColorPanel({ color, setColor, history, setHistory }) {
         <GradientSlider
           label="H"
           value={h}
-          onChange={(val) => { applyHsv(val, s, v); addToHistory(hsvToHex(val, s, v)) }}
+          onChange={(val) => applyHsv(val, s, v)}
           makeGradient={hueGradient}
           textValue={Math.round(h * 360) + '°'}
         />
         <GradientSlider
           label="S"
           value={s}
-          onChange={(val) => { applyHsv(h, val, v); addToHistory(hsvToHex(h, val, v)) }}
+          onChange={(val) => applyHsv(h, val, v)}
           makeGradient={satGradient}
           textValue={Math.round(s * 100) + '%'}
         />
         <GradientSlider
           label="V"
           value={v}
-          onChange={(val) => { applyHsv(h, s, val); addToHistory(hsvToHex(h, s, val)) }}
+          onChange={(val) => applyHsv(h, s, val)}
           makeGradient={valGradient}
           textValue={Math.round(v * 100) + '%'}
         />
       </div>
 
-      {/* 5. 현재 색 + hex 입력 */}
-      <div className="cp-section cp-bottom">
-        <div className="cp-preview" style={{ background: currentHex }} title={currentHex} />
-        <input
-          className="cp-hex-input"
-          type="text"
-          value={color}
-          onChange={(e) => handleHexInput(e.target.value)}
-          spellCheck={false}
-          maxLength={7}
-        />
-        <span className="cp-rgb">
-          {Math.round(r*255)}, {Math.round(g*255)}, {Math.round(b*255)}
-        </span>
+      {/* 5. 스포이드 스타일: 미리보기 박스 + hex 입력 대칭 배치 */}
+      <div className="cp-section">
+        <div className="cp-bottom-row">
+          {/* 왼쪽: 이전 색 미리보기 (스포이드 '이전 색' 역할) */}
+          <div className="cp-preview-pair">
+            <div
+              className="cp-preview cp-preview-old"
+              style={{ background: history[0] || '#e5e5e5' }}
+              title={history[0] ? `이전: ${history[0]}` : '이전 없음'}
+            />
+            {/* 현재 색 미리보기 */}
+            <div
+              className="cp-preview cp-preview-new"
+              style={{ background: currentHex }}
+              title={`현재: ${currentHex}`}
+            />
+          </div>
+
+          {/* 오른쪽: hex 입력 + RGB */}
+          <div className="cp-input-group">
+            <input
+              className="cp-hex-input"
+              type="text"
+              value={color}
+              onChange={(e) => handleHexInput(e.target.value)}
+              spellCheck={false}
+              maxLength={7}
+            />
+            <span className="cp-rgb">
+              {Math.round(r*255)}, {Math.round(g*255)}, {Math.round(b*255)}
+            </span>
+          </div>
+        </div>
+
+        {/* 색 채우기 버튼 */}
+        {onFill && (
+          <button
+            className="cp-fill-btn"
+            onClick={onFill}
+            title="현재 색으로 전체 채우기"
+          >
+            <FillIcon /> 전체 채우기
+          </button>
+        )}
       </div>
     </div>
+  )
+}
+
+function FillIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 13h12"/>
+      <path d="M4 11V4l4-3 4 3v7"/>
+      <path d="M4 7h8"/>
+      <rect x="6" y="8" width="4" height="3" rx="0.5" fill="currentColor" stroke="none"/>
+    </svg>
   )
 }

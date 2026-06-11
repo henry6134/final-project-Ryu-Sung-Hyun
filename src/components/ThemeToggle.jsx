@@ -1,12 +1,2 @@
-export default function ThemeToggle({ theme, onToggle }) {
-  return (
-    <button
-      className="theme-toggle"
-      onClick={onToggle}
-      aria-label="테마 전환"
-      title={theme === 'light' ? '다크 모드로 전환' : '라이트 모드로 전환'}
-    >
-      {theme === 'light' ? '🌙' : '☀️'}
-    </button>
-  )
-}
+// 더 이상 사용되지 않음 - SetupScreen에 내장
+export default function ThemeToggle() { return null }

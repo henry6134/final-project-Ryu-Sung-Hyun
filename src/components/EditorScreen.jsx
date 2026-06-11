@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Toolbar from './Toolbar'
 import CanvasBoard from './CanvasBoard'
 import ColorPanel from './ColorPanel'
@@ -21,7 +21,20 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
   const [sizeMode, setSizeMode]     = useState(null)
   const [showSettings, setShowSettings] = useState(false)
   const [bgImage, setBgImage]       = useState(null)
-  const [colorHistory, setColorHistory] = useState([]) // data URL
+
+  // ── 색 히스토리: 실제 용지에 칠해진 색만 추적 ──
+  // paint가 호출될 때마다 pixels에서 실제 사용 색 추출
+  const [colorHistory, setColorHistory] = useState([])
+
+  // pixels 변경 시 히스토리 동기화
+  useEffect(() => {
+    const used = editor.getUsedColors()
+    if (used.length === 0) return
+    setColorHistory((prev) => {
+      const merged = [...used, ...prev.filter(c => !used.includes(c))].slice(0, 20)
+      return merged
+    })
+  }, [editor.pixels])
 
   // ── Export ──────────────────────────────────────
   const exportJSON = () =>
@@ -94,6 +107,13 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
   const doClear = () => {
     setShowClear(false)
     editor.clearAll()
+    setColorHistory([])
+  }
+
+  // ── 전체 채우기 ──────────────────────────────────
+  const handleFill = () => {
+    editor.fillAll()
+    setShowColor(false)
   }
 
   return (
@@ -147,6 +167,7 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
               setColor={editor.setColor}
               history={colorHistory}
               setHistory={setColorHistory}
+              onFill={handleFill}
             />
             <div className="modal-actions">
               <button className="primary" onClick={() => setShowColor(false)}>확인</button>
@@ -157,8 +178,14 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
 
       {showExport && (
         <ExportPopup
-          onPNG={() => { downloadCanvasPNG(canvasRef.current); setShowExport(false) }}
-          onJPG={() => { downloadCanvasJPG(canvasRef.current); setShowExport(false) }}
+          onPNG={() => {
+            downloadCanvasPNG(canvasRef.current, editor.pixels, config.width, config.height)
+            setShowExport(false)
+          }}
+          onJPG={(withGrid) => {
+            downloadCanvasJPG(canvasRef.current, editor.pixels, config.width, config.height, withGrid)
+            setShowExport(false)
+          }}
           onJSON={() => { exportJSON(); setShowExport(false) }}
           onClose={() => setShowExport(false)}
         />

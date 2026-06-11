@@ -11,19 +11,21 @@ const PenIcon    = () => <Icon><path d="M11 2l3 3-8 8H3v-3L11 2z"/></Icon>
 const EraserIcon = () => <Icon><path d="M12 3L3 12l2 2 9-9-2-2zM1 15h14"/></Icon>
 const EyedropIcon= () => <Icon><path d="M10 2l4 4-7 7-2-1-3 3H1v-2l3-3-1-2 7-7z"/></Icon>
 
-// 이동: 십자 + 4방향 화살표
+// 이동: 화살표 머리 크기 50% 축소
 const MoveIcon   = () => (
   <Icon>
-    {/* 위 */}
+    {/* 수직선 */}
     <path d="M8 2v12"/>
-    <path d="M5 5l3-3 3 3"/>
-    {/* 아래 */}
-    <path d="M5 11l3 3 3-3"/>
-    {/* 왼 */}
+    {/* 수평선 */}
     <path d="M2 8h12"/>
-    <path d="M5 5L2 8l3 3"/>
-    {/* 오른 */}
-    <path d="M11 5l3 3-3 3"/>
+    {/* 위 화살표 머리 (작게) */}
+    <path d="M6.5 4.5L8 2l1.5 2.5"/>
+    {/* 아래 화살표 머리 (작게) */}
+    <path d="M6.5 11.5L8 14l1.5-2.5"/>
+    {/* 왼 화살표 머리 (작게) */}
+    <path d="M4.5 6.5L2 8l2.5 1.5"/>
+    {/* 오른 화살표 머리 (작게) */}
+    <path d="M11.5 6.5L14 8l-2.5 1.5"/>
   </Icon>
 )
 
@@ -32,29 +34,62 @@ const RedoIcon   = () => <Icon><path d="M13 7H7a4 4 0 000 8h2M13 7l-3-3M13 7l-3 
 const ImportIcon = () => <Icon><path d="M8 2v9M4 7l4 4 4-4M2 13h12"/></Icon>
 const ExportIcon = () => <Icon><path d="M8 11V2M4 5l4-4 4 4M2 13h12"/></Icon>
 
-// 톱니바퀴: 원 + 6개 돌기
+// 설정 아이콘: 가운데 두 겹 원 + 바깥 원과 연결된 8개 선 (해 모양과 구분)
+// → 안쪽 작은 원(r=1.8) + 바깥 원(r=4.5) + 8방향 연결선
 const SettingsIcon = () => (
   <Icon>
-    <circle cx="8" cy="8" r="2.5"/>
-    {/* 6개 돌기 */}
-    <path d="M8 1v2.2"/>
-    <path d="M8 12.8V15"/>
-    <path d="M1 8h2.2"/>
-    <path d="M12.8 8H15"/>
-    <path d="M3.05 3.05l1.56 1.56"/>
-    <path d="M11.39 11.39l1.56 1.56"/>
-    <path d="M3.05 12.95l1.56-1.56"/>
-    <path d="M11.39 4.61l1.56-1.56"/>
+    {/* 바깥 원 */}
+    <circle cx="8" cy="8" r="4.5"/>
+    {/* 안쪽 작은 원 */}
+    <circle cx="8" cy="8" r="1.8"/>
+    {/* 바깥 원에서 짧게 뻗은 8개 선 (r=4.5 끝점에서 r=6.5까지) */}
+    <line x1="8"    y1="1.5"  x2="8"    y2="3.5"/>
+    <line x1="8"    y1="12.5" x2="8"    y2="14.5"/>
+    <line x1="1.5"  y1="8"    x2="3.5"  y2="8"/>
+    <line x1="12.5" y1="8"    x2="14.5" y2="8"/>
+    <line x1="3.29" y1="3.29" x2="4.71" y2="4.71"/>
+    <line x1="11.29" y1="11.29" x2="12.71" y2="12.71"/>
+    <line x1="3.29" y1="12.71" x2="4.71" y2="11.29"/>
+    <line x1="11.29" y1="4.71" x2="12.71" y2="3.29"/>
   </Icon>
 )
 
 const MoonIcon = () => <Icon><path d="M12 3a6 6 0 01-9 9 6 6 0 009-9z"/></Icon>
-const SunIcon  = () => (
-  <Icon>
-    <circle cx="8" cy="8" r="3"/>
-    <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3"/>
-  </Icon>
-)
+
+// 에디터 토글과 동일한 디자인의 테마 토글 (썬/문 아이콘 버튼)
+export function ThemeToggleEditor({ theme, onToggle }) {
+  const isDark = theme === 'dark'
+  return (
+    <button
+      className="theme-toggle-editor"
+      onClick={onToggle}
+      title={isDark ? '라이트 모드' : '다크 모드'}
+      aria-label="테마 전환"
+    >
+      <span className={`toggle-track ${isDark ? 'dark' : 'light'}`}>
+        <span className="toggle-thumb">
+          {isDark
+            ? <MoonIcon />
+            : (
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none"
+                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <circle cx="8" cy="8" r="3"/>
+                <line x1="8" y1="1" x2="8" y2="3"/>
+                <line x1="8" y1="13" x2="8" y2="15"/>
+                <line x1="1" y1="8" x2="3" y2="8"/>
+                <line x1="13" y1="8" x2="15" y2="8"/>
+                <line x1="3.05" y1="3.05" x2="4.5" y2="4.5"/>
+                <line x1="11.5" y1="11.5" x2="12.95" y2="12.95"/>
+                <line x1="3.05" y1="12.95" x2="4.5" y2="11.5"/>
+                <line x1="11.5" y1="4.5" x2="12.95" y2="3.05"/>
+              </svg>
+            )
+          }
+        </span>
+      </span>
+    </button>
+  )
+}
 
 export default function Toolbar({
   tool, setTool, color, theme,
@@ -102,9 +137,7 @@ export default function Toolbar({
 
       {/* Theme + Settings */}
       <div className="tool-group">
-        <button className="tool-icon-btn" onClick={onToggleTheme} title={theme === 'light' ? '다크 모드' : '라이트 모드'}>
-          {theme === 'light' ? <MoonIcon /> : <SunIcon />}
-        </button>
+        <ThemeToggleEditor theme={theme} onToggle={onToggleTheme} />
         <button className="tool-icon-btn" onClick={onOpenSettings} title="설정">
           <SettingsIcon />
         </button>

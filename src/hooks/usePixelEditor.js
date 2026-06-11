@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { useHistory } from './useHistory'
 
 export function usePixelEditor(width, height) {
@@ -26,6 +26,12 @@ export function usePixelEditor(width, height) {
   const paint = (x, y) =>
     applySquare(x, y, tool === 'pen' ? penSize : eraserSize, tool === 'pen' ? color : null)
 
+  // 전체 채우기: 모든 칸을 현재 색으로
+  const fillAll = useCallback(() => {
+    const next = Array.from({ length: height }, () => Array(width).fill(color))
+    set(next)
+  }, [color, width, height, set])
+
   const getColorAt = (x, y) => pixels[y]?.[x] ?? null
 
   const fromJSON = (obj) => {
@@ -34,10 +40,23 @@ export function usePixelEditor(width, height) {
 
   const clearAll = () => set(makeBlank())
 
+  // 현재 pixels에서 실제 사용된 색 목록 추출
+  const getUsedColors = useCallback(() => {
+    const seen = new Set()
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const c = pixels[y]?.[x]
+        if (c) seen.add(c)
+      }
+    }
+    return Array.from(seen)
+  }, [pixels, width, height])
+
   return {
     pixels, tool, color, penSize, eraserSize,
     setTool, setColor, setPenSize, setEraserSize,
-    paint, getColorAt, fromJSON, clearAll,
+    paint, fillAll, getColorAt, fromJSON, clearAll,
+    getUsedColors,
     undo, redo, canUndo, canRedo,
   }
 }
