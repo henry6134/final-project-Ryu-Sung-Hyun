@@ -22,9 +22,17 @@ function RatioPreview({ width, height }) {
   )
 }
 
-// 숫자 입력 — 빈 값 허용, blur 시 0으로 fallback
+// 숫자 입력 — 빈 값 허용, blur 시 1로 fallback
+// isFocused 동안은 raw 우선, 포커스 없을 때는 외부 value에 동기화
 function NumberInput({ label, value, onChange, disabled }) {
   const [raw, setRaw] = useState(String(value))
+  const [focused, setFocused] = useState(false)
+
+  // 외부 value가 바뀌었을 때 포커스 중이 아니면 raw도 동기화
+  const strVal = String(value)
+  if (!focused && raw !== strVal) {
+    setRaw(strVal)
+  }
 
   const handleChange = (e) => {
     const v = e.target.value
@@ -33,7 +41,13 @@ function NumberInput({ label, value, onChange, disabled }) {
     if (!isNaN(n) && n >= 1) onChange(n)
   }
 
+  const handleFocus = (e) => {
+    setFocused(true)
+    if (raw === '0') e.target.select()
+  }
+
   const handleBlur = () => {
+    setFocused(false)
     const n = parseInt(raw, 10)
     if (isNaN(n) || n < 1) {
       setRaw('1')
@@ -54,7 +68,7 @@ function NumberInput({ label, value, onChange, disabled }) {
         data-field={label}
         value={disabled ? String(value) : raw}
         onChange={handleChange}
-        onFocus={(e) => { if (raw === '0') e.target.select() }}
+        onFocus={handleFocus}
         onBlur={handleBlur}
         disabled={disabled}
         style={{ width: '100%', opacity: disabled ? 0.45 : 1 }}

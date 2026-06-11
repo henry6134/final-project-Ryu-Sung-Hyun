@@ -150,7 +150,7 @@ function GradientSlider({ label, value, onChange, makeGradient, textValue }) {
 }
 
 // ── 메인 ColorPanel ───────────────────────────────────────
-export default function ColorPanel({ color, setColor, history, setHistory }) {
+export default function ColorPanel({ color, setColor, history, setHistory, onFill }) {
   // 현재 색을 HSV로 관리
   const initHsv = hexToHsv(color.startsWith('#') && color.length === 7 ? color : '#ff0000')
   const [hsv, setHsv] = useState(initHsv)
@@ -300,6 +300,17 @@ export default function ColorPanel({ color, setColor, history, setHistory }) {
             </span>
           </div>
         </div>
+
+        {/* 색 채우기 버튼 */}
+        {onFill && (
+          <button
+            className="cp-fill-btn"
+            onClick={onFill}
+            title="현재 색으로 전체 채우기"
+          >
+            <FillIcon /> 전체 채우기
+          </button>
+        )}
       </div>
     </div>
   )
