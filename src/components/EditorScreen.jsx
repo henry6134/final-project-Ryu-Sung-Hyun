@@ -111,12 +111,6 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
     setColorHistory([])
   }
 
-  // ── 전체 채우기 ──────────────────────────────────
-  const handleFill = () => {
-    editor.fillAll()
-    setShowColor(false)
-  }
-
   return (
     <div className={`page theme-${config.theme} editor-page`}>
       <Toolbar
@@ -168,7 +162,6 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
               setColor={editor.setColor}
               history={colorHistory}
               setHistory={setColorHistory}
-              onFill={handleFill}
             />
             <div className="modal-actions">
               <button className="primary" onClick={() => setShowColor(false)}>확인</button>
