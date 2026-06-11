@@ -39,12 +39,10 @@
 <table>
   <tr>
     <td align="center">
-      <img src="./setUp.png" width="576" height="360">
-      <img src="./ratioSet.png" width="576" height="360">
+      <img src="./setUp.png" width="576" height="360">      
       <br/><sub><b>초기 화면</b></sub>
     </td>
-    <td align="center">
-      <img src="./setUp.png" width="576" height="360">
+    <td align="center">      
       <img src="./ratioSet.png" width="576" height="360">
       <br/><sub><br/>비율 프리셋 · 픽셀 수 입력 · 가로↔세로 전환</sub>
     </td>
