@@ -3,6 +3,7 @@ import Toolbar from './Toolbar'
 import CanvasBoard from './CanvasBoard'
 import ColorPanel from './ColorPanel'
 import SizePopup from './SizePopup'
+import EraserPopup from './EraserPopup'
 import ExportPopup from './ExportPopup'
 import ImportPopup from './ImportPopup'
 import ConfirmPopup from './ConfirmPopup'
@@ -93,8 +94,8 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
   // ── Tool click ───────────────────────────────────
   const handleToolClick = (nextTool) => {
     if (editor.tool === nextTool) {
-      if (nextTool === 'pen')    { setSizeMode('pen');   return }
-      if (nextTool === 'eraser') { setShowClear(true);   return }
+      if (nextTool === 'pen')    { setSizeMode('pen');      return }
+      if (nextTool === 'eraser') { setSizeMode('eraser');   return }
     }
     editor.setTool(nextTool)
   }
@@ -210,7 +211,12 @@ export default function EditorScreen({ config, setConfig, onBack, onToggleTheme 
         <SizePopup title="펜 크기" value={editor.penSize} setValue={editor.setPenSize} onClose={() => setSizeMode(null)} />
       )}
       {sizeMode === 'eraser' && (
-        <SizePopup title="지우개 크기" value={editor.eraserSize} setValue={editor.setEraserSize} onClose={() => setSizeMode(null)} />
+        <EraserPopup
+          value={editor.eraserSize}
+          setValue={editor.setEraserSize}
+          onClear={() => { editor.clearAll(); setSizeMode(null) }}
+          onClose={() => setSizeMode(null)}
+        />
       )}
 
       {showSettings && (
