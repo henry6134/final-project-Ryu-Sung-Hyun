@@ -166,7 +166,7 @@ export default function SetupScreen({ config, setConfig, onStart, onToggleTheme 
         <div>
           <h1 className="setup-logo">PIXEL<span>.</span>MAKER</h1>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>
-            브라우저에서 바로 픽셀 아트 제작 v1.2.6
+            브라우저에서 바로 픽셀 아트 제작: version 1.2.6
           </p>
         </div>
 
