@@ -39,7 +39,7 @@
 <table>
   <tr>
     <td align="center">
-      <img src="./setUp.png" width="576" height="360">      
+      <img src="./wideScreen.png" width="576" height="360">      
       <br/><sub><b>초기 화면</b><br/>접속 시, 가장 처음 보는 화면</sub>
     </td>
     <td align="center">      
